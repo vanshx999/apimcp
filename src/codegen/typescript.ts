@@ -156,11 +156,10 @@ function generatePackageJson(spec: ParsedSpec): string {
     version: '1.0.0',
     type: 'module',
     private: true,
-    scripts: { start: 'tsx server.ts', build: 'tsc' },
+    scripts: { start: 'node server.ts' },
     dependencies: {
       '@modelcontextprotocol/server': '2.0.0-beta.4',
       zod: '^4.1.8',
-      tsx: '^4.0.0',
     },
     devDependencies: { typescript: '^5.8.0', '@types/node': '^22.0.0' },
   }, null, 2);
