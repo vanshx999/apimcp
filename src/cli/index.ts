@@ -34,6 +34,7 @@ export function createCLI(): Command {
     .description('Start an MCP server from an OpenAPI spec (runtime proxy)')
     .argument('<spec>', 'OpenAPI spec path or URL (.json / .yaml)')
     .option('-a, --auth <token>', 'API token for bearer authentication')
+    .option('--dry-run', 'Show tools without starting server')
     .action(async (spec, options) => {
       try {
         await serveCommand(spec, options);
