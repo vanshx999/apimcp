@@ -88,14 +88,15 @@ function generateToolCode(tool: ToolDefinition): string {
 
   const funcName = sanitizeName(tool.name);
 
-  // Build function signature
+  // Build function signature - required first, then optional, then body
   const sigParams: string[] = [];
-  for (const p of tool.parameters) {
-    if (p.required) {
-      sigParams.push(`${p.name}: ${pyType(p.type)}`);
-    } else {
-      sigParams.push(`${p.name}: ${pyType(p.type)} | None = None`);
-    }
+  const required = tool.parameters.filter(p => p.required);
+  const optional = tool.parameters.filter(p => !p.required);
+  for (const p of required) {
+    sigParams.push(`${p.name}: ${pyType(p.type)}`);
+  }
+  for (const p of optional) {
+    sigParams.push(`${p.name}: ${pyType(p.type)} | None = None`);
   }
   if (tool.hasBody) {
     sigParams.push('body: dict | None = None');
