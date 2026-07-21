@@ -3,6 +3,7 @@ import chalk from 'chalk';
 import { serveCommand } from './serve.js';
 import { generateCommand } from './generate.js';
 import { inspectCommand } from './inspect.js';
+import { runTUI } from './tui.js';
 import { readFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
@@ -27,7 +28,12 @@ export function createCLI(): Command {
   program
     .name('apimcp')
     .description(chalk.cyan('Convert any OpenAPI spec into an MCP server'))
-    .version(pkgVersion);
+    .version(pkgVersion)
+    .action(async () => {
+      try {
+        await runTUI();
+      } catch (err) { handleError(err); }
+    });
 
   program
     .command('serve')
@@ -45,7 +51,7 @@ export function createCLI(): Command {
     .command('generate')
     .description('Generate an MCP server from an OpenAPI spec')
     .argument('<spec>', 'OpenAPI spec path or URL (.json / .yaml)')
-    .option('-l, --lang <lang>', 'Output language (ts)', 'ts')
+    .option('-l, --lang <lang>', 'Output language (ts or py)', 'ts')
     .option('-o, --output <dir>', 'Output directory')
     .action(async (spec, options) => {
       try {
