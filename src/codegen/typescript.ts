@@ -22,6 +22,7 @@ ${toolsCode}
 
 async function main() {
   const transport = new StdioServerTransport();
+  console.error('apimcp: Server started. Waiting for MCP client...');
   await server.connect(transport);
 }
 

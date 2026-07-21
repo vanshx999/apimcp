@@ -30,6 +30,8 @@ export function generatePython(spec: ParsedSpec): Record<string, string> {
   }
 
   lines.push('if __name__ == "__main__":');
+  lines.push('    import sys');
+  lines.push('    print(f"apimcp: Server started. Waiting for MCP client...", file=sys.stderr)');
   lines.push('    mcp.run()');
   lines.push('');
 
