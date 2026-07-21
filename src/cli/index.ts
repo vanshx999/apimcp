@@ -4,6 +4,7 @@ import { serveCommand } from './serve.js';
 import { generateCommand } from './generate.js';
 import { inspectCommand } from './inspect.js';
 import { demoCommand } from './demo.js';
+import { discoverCommand } from './discover.js';
 import { runTUI } from './tui.js';
 import { readFileSync } from 'fs';
 import { join, dirname } from 'path';
@@ -77,6 +78,21 @@ export function createCLI(): Command {
     .action(async (options) => {
       try {
         await demoCommand(options.serve ? 'serve' : undefined);
+      } catch (err) { handleError(err); }
+    });
+
+  program
+    .command('discover')
+    .description('Auto-discover OpenAPI spec from any website URL')
+    .argument('<url>', 'Website URL or API base URL')
+    .option('--serve', 'Start as MCP server after discovery')
+    .option('--generate', 'Generate server code after discovery')
+    .option('-l, --lang <lang>', 'Output language for --generate (ts or py)', 'ts')
+    .option('-o, --output <dir>', 'Output directory for --generate')
+    .option('-a, --auth <token>', 'API token for bearer authentication')
+    .action(async (url, options) => {
+      try {
+        await discoverCommand(url, options);
       } catch (err) { handleError(err); }
     });
 

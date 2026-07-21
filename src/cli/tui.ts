@@ -4,6 +4,7 @@ import { loadSpecFromFile, loadSpecFromUrl } from '../shared/loader.js';
 import { parseOpenAPISpec } from '../parser/openapi.js';
 import { startProxyServer } from '../proxy/server.js';
 import { generateCode } from '../codegen/index.js';
+import { discoverAndLoadSpec } from './discover.js';
 import { writeFileSync, mkdirSync } from 'fs';
 import { join } from 'path';
 
@@ -52,6 +53,7 @@ async function getSpecFromUser(): Promise<{ specData: Record<string, unknown>; s
     options: [
       { value: 'popular', label: '⭐  Popular API', hint: 'Pick from a curated list' },
       { value: 'url', label: '🔗  URL', hint: 'Paste any OpenAPI spec URL' },
+      { value: 'discover', label: '🕵️  Discover', hint: 'Auto-find spec from any website URL' },
       { value: 'file', label: '📁  File path', hint: 'Local .json or .yaml file' },
     ],
   });
@@ -66,6 +68,18 @@ async function getSpecFromUser(): Promise<{ specData: Record<string, unknown>; s
     });
     if (clack.isCancel(choice)) { clack.cancel('Cancelled'); process.exit(0); }
     specUrl = choice as string;
+  } else if (source === 'discover') {
+    const input = await clack.text({
+      message: 'Enter any website URL:',
+      placeholder: 'https://petstore.swagger.io',
+      validate: (val) => (val ?? '').length === 0 ? 'URL is required' : undefined,
+    });
+    if (clack.isCancel(input)) { clack.cancel('Cancelled'); process.exit(0); }
+    const s = clack.spinner();
+    s.start('Discovering OpenAPI spec...');
+    const { spec } = await discoverAndLoadSpec(input as string);
+    s.stop(`Found "${spec.name}" (${spec.tools.length} tools)`);
+    return { specData: null as unknown as Record<string, unknown>, spec, input: input as string };
   } else if (source === 'url') {
     const input = await clack.text({
       message: 'Enter OpenAPI spec URL:',
