@@ -3,6 +3,7 @@ import chalk from 'chalk';
 import { serveCommand } from './serve.js';
 import { generateCommand } from './generate.js';
 import { inspectCommand } from './inspect.js';
+import { demoCommand } from './demo.js';
 import { runTUI } from './tui.js';
 import { readFileSync } from 'fs';
 import { join, dirname } from 'path';
@@ -66,6 +67,16 @@ export function createCLI(): Command {
     .action(async (spec) => {
       try {
         await inspectCommand(spec);
+      } catch (err) { handleError(err); }
+    });
+
+  program
+    .command('demo')
+    .description('Run a demo with the Petstore API')
+    .option('--serve', 'Start as MCP server')
+    .action(async (options) => {
+      try {
+        await demoCommand(options.serve ? 'serve' : undefined);
       } catch (err) { handleError(err); }
     });
 

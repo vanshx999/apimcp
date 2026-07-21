@@ -1,6 +1,7 @@
 import { McpServer } from '@modelcontextprotocol/server';
 import { StdioServerTransport } from '@modelcontextprotocol/server/stdio';
 import * as z from 'zod';
+import chalk from 'chalk';
 import type { ParsedSpec, ToolDefinition, ParameterDefinition } from '../parser/types.js';
 import { executeToolCall } from './executor.js';
 
@@ -34,6 +35,11 @@ function buildInputSchema(tool: ToolDefinition): Record<string, z.ZodType> {
   return shape;
 }
 
+const methodColors: Record<string, (s: string) => string> = {
+  GET: chalk.green, POST: chalk.blue, PUT: chalk.yellow,
+  PATCH: chalk.magenta, DELETE: chalk.red,
+};
+
 export function createProxyServer(spec: ParsedSpec, authToken?: string): McpServer {
   const server = new McpServer({
     name: spec.name,
@@ -49,7 +55,19 @@ export function createProxyServer(spec: ParsedSpec, authToken?: string): McpServ
         inputSchema: shape,
       },
       async (args: Record<string, unknown>) => {
+        const start = Date.now();
+        const methodColor = methodColors[tool.method] ?? chalk.white;
+        const argStr = Object.entries(args)
+          .map(([k, v]) => `${k}=${typeof v === 'string' ? v : JSON.stringify(v)}`)
+          .join(', ');
+        console.error(chalk.dim(`  ${methodColor(tool.method)} ${tool.path} ${argStr ? chalk.cyan(`<${argStr}>`) : ''}`));
+
         const result = await executeToolCall({ tool, args, authToken });
+
+        const ms = Date.now() - start;
+        const statusColor = result.length < 100 && result.includes('error') ? chalk.red : chalk.green;
+        console.error(chalk.dim(`    ${statusColor('✓')} ${ms}ms · ${result.length}b`));
+
         return {
           content: [{ type: 'text' as const, text: result }],
         };
@@ -63,5 +81,6 @@ export function createProxyServer(spec: ParsedSpec, authToken?: string): McpServ
 export async function startProxyServer(spec: ParsedSpec, authToken?: string): Promise<void> {
   const server = createProxyServer(spec, authToken);
   const transport = new StdioServerTransport();
+  console.error(chalk.dim(`\n  Listening for MCP client connections...\n`));
   await server.connect(transport);
 }
