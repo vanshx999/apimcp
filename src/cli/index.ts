@@ -2,6 +2,7 @@ import { Command } from 'commander';
 import chalk from 'chalk';
 import { serveCommand } from './serve.js';
 import { generateCommand } from './generate.js';
+import { inspectCommand } from './inspect.js';
 import { readFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
@@ -48,6 +49,16 @@ export function createCLI(): Command {
     .action(async (spec, options) => {
       try {
         await generateCommand(spec, options);
+      } catch (err) { handleError(err); }
+    });
+
+  program
+    .command('inspect')
+    .description('List all tools from an OpenAPI spec')
+    .argument('<spec>', 'OpenAPI spec path or URL (.json / .yaml)')
+    .action(async (spec) => {
+      try {
+        await inspectCommand(spec);
       } catch (err) { handleError(err); }
     });
 

@@ -9,6 +9,9 @@ export interface ExecuteOptions {
 export async function executeToolCall(options: ExecuteOptions): Promise<string> {
   const { tool, args, authToken } = options;
   let url = tool.serverUrl + resolvePath(tool.path, args);
+  if (!url.startsWith('http://') && !url.startsWith('https://')) {
+    return JSON.stringify({ error: `Failed to parse URL from ${url}` });
+  }
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',

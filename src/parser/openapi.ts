@@ -1,3 +1,4 @@
+import SwaggerParser from '@apidevtools/swagger-parser';
 import type { ParsedSpec, ToolDefinition, HttpMethod, AuthConfig, ParameterDefinition } from './types.js';
 
 function sanitizeName(s: string): string {
@@ -14,39 +15,27 @@ function operationIdToName(operationId: string, path: string, method: string): s
   return `${method}_${resource}`;
 }
 
-function resolveRef(
-  obj: Record<string, unknown>,
-  ref: string,
-  root: Record<string, unknown>
-): Record<string, unknown> {
-  const parts = ref.replace('#/', '').split('/');
-  let current: unknown = root;
-  for (const part of parts) {
-    if (current && typeof current === 'object') {
-      current = (current as Record<string, unknown>)[part];
-    } else {
-      return {};
-    }
-  }
-  return (current as Record<string, unknown>) ?? {};
-}
-
-export function parseOpenAPISpec(spec: Record<string, unknown>, specUrl?: string): ParsedSpec {
-  const root = spec as Record<string, unknown>;
+export async function parseOpenAPISpec(spec: Record<string, unknown>, specUrl?: string): Promise<ParsedSpec> {
+  const resolved = await SwaggerParser.dereference(spec as any) as Record<string, unknown>;
+  const root = resolved;
   const info = (root.info ?? {}) as Record<string, unknown>;
   const paths = (root.paths ?? {}) as Record<string, unknown>;
   const components = (root.components ?? {}) as Record<string, unknown>;
   const securitySchemes = ((components.securitySchemes ?? {}) as Record<string, unknown>);
 
-  let serverUrl = 'http://localhost';
+  let serverUrl = '';
   const servers = root.servers as Array<Record<string, unknown>> | undefined;
   if (servers && servers.length > 0) {
-    serverUrl = (servers[0].url as string) ?? serverUrl;
-  } else if (specUrl) {
+    serverUrl = (servers[0].url as string) ?? '';
+  }
+  if (serverUrl.startsWith('/') && specUrl) {
     try {
       const url = new URL(specUrl);
-      serverUrl = `${url.protocol}//${url.host}`;
+      serverUrl = `${url.protocol}//${url.host}${serverUrl}`;
     } catch { /* ignore */ }
+  }
+  if (!serverUrl || serverUrl === '/') {
+    serverUrl = 'http://localhost';
   }
 
   const globalAuth = extractGlobalAuth(root, securitySchemes);
@@ -63,7 +52,7 @@ export function parseOpenAPISpec(spec: Record<string, unknown>, specUrl?: string
       const operationId = (operation.operationId as string) ?? '';
       const description = (operation.description as string) ?? (operation.summary as string) ?? '';
 
-      const parameters = collectParameters(operation, pathItem as Record<string, unknown>, root);
+      const parameters = collectParameters(operation, pathItem as Record<string, unknown>);
 
       const hasBody = method === 'POST' || method === 'PUT' || method === 'PATCH';
       let bodySchema: Record<string, unknown> | undefined;
@@ -142,7 +131,6 @@ function extractOperationAuth(
 function collectParameters(
   operation: Record<string, unknown>,
   pathItem: Record<string, unknown>,
-  root: Record<string, unknown>
 ): ParameterDefinition[] {
   const params: ParameterDefinition[] = [];
   const allParams = [
@@ -151,17 +139,13 @@ function collectParameters(
   ];
 
   for (const p of allParams) {
-    let resolved = p;
-    if (p.$ref && typeof p.$ref === 'string') {
-      resolved = resolveRef(root, p.$ref as string, root);
-    }
-    const schema = (resolved.schema ?? {}) as Record<string, unknown>;
+    const schema = (p.schema ?? {}) as Record<string, unknown>;
     params.push({
-      name: resolved.name as string,
-      in: (resolved.in as 'path' | 'query' | 'header' | 'cookie') ?? 'query',
-      required: (resolved.required as boolean) ?? false,
+      name: p.name as string,
+      in: (p.in as 'path' | 'query' | 'header' | 'cookie') ?? 'query',
+      required: (p.required as boolean) ?? false,
       type: (schema.type as string) ?? 'string',
-      description: (resolved.description as string) ?? '',
+      description: (p.description as string) ?? '',
     });
   }
   return params;

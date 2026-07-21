@@ -13,7 +13,7 @@ export async function generateCommand(
     ? await loadSpecFromUrl(input)
     : loadSpecFromFile(input);
 
-  const spec = parseOpenAPISpec(specData, input);
+  const spec = await parseOpenAPISpec(specData, input);
   const safeName = spec.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'api';
   const outDir = options.output ?? `./mcp-${safeName}`;
 
