@@ -90,3 +90,7 @@ apimcp generate ./api-spec.yaml -o ./my-mcp-server
 - **No codegen lock-in** — generated code has zero dependency on apimcp
 - **One command** — point at any spec, get a working MCP server
 - **Auth-aware** — API keys, bearer, and OAuth2 built in
+
+## License
+
+MIT
