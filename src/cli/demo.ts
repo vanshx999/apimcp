@@ -7,12 +7,12 @@ import { startProxyServer } from '../proxy/server.js';
 const DEMO_URL = 'https://petstore3.swagger.io/api/v3/openapi.json';
 
 export async function demoCommand(mode?: string): Promise<void> {
-  console.error(chalk.cyan(`
-  ╔══════════════════════════════════════╗
-  ║     ${chalk.bold('apimcp — Demo Mode')}     ║
-  ║  ${chalk.dim('Petstore API · 19 tools')}    ║
-  ╚══════════════════════════════════════╝
-  `));
+  console.error(`
+  ${chalk.bold('╭──────────────────────────────────────╮')}
+  ${chalk.bold('│')}  ${chalk.cyan(chalk.bold('apimcp'))}  ${chalk.dim('· Demo Mode')}         ${chalk.bold('│')}
+  ${chalk.bold('│')}  ${chalk.dim('Petstore API · 19 tools')}        ${chalk.bold('│')}
+  ${chalk.bold('╰──────────────────────────────────────╯')}
+  `);
 
   const s = clack.spinner();
   s.start('Fetching Petstore spec...');
@@ -36,13 +36,14 @@ export async function demoCommand(mode?: string): Promise<void> {
     console.error(`         ${chalk.cyan(tool.name)}${desc}`);
   }
 
+  console.error(`\n  ${chalk.green('●')} ${chalk.bold('Demo ready')} — ${spec.tools.length} tools available`);
+
   if (mode === 'serve') {
-    console.error(chalk.green(`\n  ◉ Starting demo server (19 tools via stdio)...\n`));
+    console.error(chalk.dim(`\n  Listening for MCP client connections...\n`));
     await startProxyServer(spec);
     return;
   }
 
-  console.error(`\n  ${chalk.green('◉')} ${chalk.bold('Demo ready')} — ${spec.tools.length} tools available`);
-  console.error(chalk.dim(`\n  Run ${chalk.cyan('apimcp demo --serve')} to start as MCP server`));
-  console.error(chalk.dim(`  Or run ${chalk.cyan('apimcp inspect <url>')} for another API\n`));
+  console.error(chalk.dim(`\n  ${chalk.cyan('apimcp demo --serve')}    Start as MCP server`));
+  console.error(chalk.dim(`  ${chalk.cyan('apimcp inspect <url>')}    Try another API\n`));
 }

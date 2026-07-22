@@ -5,24 +5,25 @@ import { parseOpenAPISpec } from '../parser/openapi.js';
 import { startProxyServer } from '../proxy/server.js';
 import { generateCode } from '../codegen/index.js';
 import { discoverAndLoadSpec } from './discover.js';
+import { deployCommand } from './deploy.js';
 import { writeFileSync, mkdirSync } from 'fs';
 import { join } from 'path';
 
 const POPULAR_APIS: Record<string, string> = {
-  '🐶  Petstore API (demo)': 'https://petstore3.swagger.io/api/v3/openapi.json',
-  '🐙  GitHub REST API': 'https://raw.githubusercontent.com/github/rest-api-description/main/descriptions/ghes-3.16/ghes-3.16.json',
-  '💳  Stripe API': 'https://raw.githubusercontent.com/stripe/openapi/master/openapi/spec3.json',
-  '☁️  OpenAI API': 'https://raw.githubusercontent.com/OpenAI/openai-openapi/master/openapi.yaml',
-  '📧  SendGrid API': 'https://raw.githubusercontent.com/sendgrid/sendgrid-oai/main/oai.yaml',
+  'Petstore API (demo)': 'https://petstore3.swagger.io/api/v3/openapi.json',
+  'GitHub REST API': 'https://raw.githubusercontent.com/github/rest-api-description/main/descriptions/ghes-3.16/ghes-3.16.json',
+  'Stripe API': 'https://raw.githubusercontent.com/stripe/openapi/master/openapi/spec3.json',
+  'OpenAI API': 'https://raw.githubusercontent.com/OpenAI/openai-openapi/master/openapi.yaml',
+  'SendGrid API': 'https://raw.githubusercontent.com/sendgrid/sendgrid-oai/main/oai.yaml',
 };
 
 function showBanner(): void {
-  console.error(chalk.cyan(`
-  ╔══════════════════════════════════════╗
-  ║        ${chalk.bold('apimcp')}          ║
-  ║  ${chalk.dim('OpenAPI spec → MCP server')} ║
-  ╚══════════════════════════════════════╝
-  `));
+  console.error(`
+  ${chalk.bold('╭──────────────────────────────────────╮')}
+  ${chalk.bold('│')}  ${chalk.cyan(chalk.bold('apimcp'))}                      ${chalk.bold('│')}
+  ${chalk.bold('│')}  ${chalk.dim('OpenAPI spec → MCP server')}    ${chalk.bold('│')}
+  ${chalk.bold('╰──────────────────────────────────────╯')}
+  `);
 }
 
 function showTools(spec: { name: string; version: string; serverUrl: string; tools: Array<{ method: string; path: string; name: string; description: string; parameters: Array<{ name: string; required: boolean }> }> }): void {
@@ -31,7 +32,7 @@ function showTools(spec: { name: string; version: string; serverUrl: string; too
     PATCH: chalk.magenta, DELETE: chalk.red,
   };
 
-  console.error(`\n  ${chalk.bold(spec.name)} v${spec.version}`);
+  console.error(`  ${chalk.bold(spec.name)} ${chalk.dim(`v${spec.version}`)}`);
   console.error(chalk.dim(`  ${spec.serverUrl}\n`));
 
   for (const tool of spec.tools) {
@@ -44,17 +45,17 @@ function showTools(spec: { name: string; version: string; serverUrl: string; too
     console.error(`         ${chalk.cyan(tool.name)}${desc}`);
   }
 
-  console.error(`\n  ${chalk.green('◉')} ${chalk.bold(String(spec.tools.length))} tools\n`);
+  console.error(`\n  ${chalk.green('●')} ${chalk.bold(String(spec.tools.length))} tools\n`);
 }
 
 async function getSpecFromUser(): Promise<{ specData: Record<string, unknown>; spec: any; input: string }> {
   const source = await clack.select({
     message: 'Choose a spec source:',
     options: [
-      { value: 'popular', label: '⭐  Popular API', hint: 'Pick from a curated list' },
-      { value: 'url', label: '🔗  URL', hint: 'Paste any OpenAPI spec URL' },
-      { value: 'discover', label: '🕵️  Discover', hint: 'Auto-find spec from any website URL' },
-      { value: 'file', label: '📁  File path', hint: 'Local .json or .yaml file' },
+      { value: 'popular', label: 'Popular API', hint: 'Pick from a curated list' },
+      { value: 'url', label: 'URL', hint: 'Paste any OpenAPI spec URL' },
+      { value: 'discover', label: 'Discover', hint: 'Auto-find spec from any website URL' },
+      { value: 'file', label: 'File path', hint: 'Local .json or .yaml file' },
     ],
   });
 
@@ -117,27 +118,43 @@ export async function runTUI(): Promise<void> {
   const mode = await clack.select({
     message: 'What do you want to do?',
     options: [
-      { value: 'inspect', label: '🔍  Inspect spec', hint: 'list all API endpoints as tools' },
-      { value: 'serve', label: '▶  Serve as MCP server', hint: 'connect AI agents instantly' },
-      { value: 'generate', label: '📦  Generate server code', hint: 'TypeScript or Python output' },
-      { value: 'help', label: '❓  Help', hint: 'show CLI usage' },
+      { value: 'inspect', label: 'Inspect spec', hint: 'list all API endpoints as tools' },
+      { value: 'serve', label: 'Serve as MCP server', hint: 'connect AI agents instantly via stdio' },
+      { value: 'generate', label: 'Generate server code', hint: 'TypeScript or Python output' },
+      { value: 'deploy', label: 'Deploy to Cloudflare', hint: 'one-command deploy to a live URL' },
+      { value: 'help', label: 'Help', hint: 'show CLI usage and examples' },
     ],
   });
 
   if (clack.isCancel(mode)) { clack.cancel('Cancelled'); process.exit(0); }
 
   if (mode === 'help') {
-    console.error(`\n  ${chalk.bold('Usage:')}`);
-    console.error(`    apimcp                   Open this interactive TUI`);
-    console.error(`    apimcp serve <spec>      Start MCP server (proxy mode)`);
-    console.error(`    apimcp generate <spec>   Generate server code`);
-    console.error(`    apimcp inspect <spec>    List all tools\n`);
+    console.error(`\n  ${chalk.bold('apimcp')} — ${chalk.dim('Convert any OpenAPI spec into an MCP server')}\n`);
+    console.error(`  ${chalk.bold('Commands:')}`);
+    console.error(`    ${chalk.cyan('apimcp')}                        Open this interactive TUI`);
+    console.error(`    ${chalk.cyan('apimcp demo')}                   Run a demo with Petstore API`);
+    console.error(`    ${chalk.cyan('apimcp inspect <spec>')}         List all tools from a spec`);
+    console.error(`    ${chalk.cyan('apimcp serve <spec>')}           Start MCP proxy server (stdio)`);
+    console.error(`    ${chalk.cyan('apimcp generate <spec>')}        Generate server source code`);
+    console.error(`    ${chalk.cyan('apimcp discover <url>')}         Auto-find spec from a website`);
+    console.error(`    ${chalk.cyan('apimcp deploy <spec>')}          Deploy to Cloudflare Workers\n`);
+    console.error(`  ${chalk.bold('Examples:')}`);
+    console.error(`    ${chalk.dim('apimcp demo')}`);
+    console.error(`    ${chalk.dim('apimcp discover petstore.swagger.io')}`);
+    console.error(`    ${chalk.dim('apimcp deploy https://.../openapi.json --dry-run')}\n`);
     return;
   }
 
   if (mode === 'inspect') {
     const { spec } = await getSpecFromUser();
     showTools(spec);
+    return;
+  }
+
+  if (mode === 'deploy') {
+    const { spec, input } = await getSpecFromUser();
+    showTools(spec);
+    await deployCommand(input, { dryRun: true });
     return;
   }
 
@@ -190,7 +207,7 @@ export async function runTUI(): Promise<void> {
 
     if (clack.isCancel(auth)) { clack.cancel('Cancelled'); process.exit(0); }
 
-    console.error(chalk.green(`\n  ◉ Starting server with ${spec.tools.length} tools via stdio...\n`));
+    console.error(chalk.dim(`\n  Listening for MCP client connections...\n`));
     await startProxyServer(spec, auth || undefined);
   }
 }

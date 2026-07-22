@@ -5,6 +5,7 @@ import { generateCommand } from './generate.js';
 import { inspectCommand } from './inspect.js';
 import { demoCommand } from './demo.js';
 import { discoverCommand } from './discover.js';
+import { deployCommand } from './deploy.js';
 import { runTUI } from './tui.js';
 import { readFileSync } from 'fs';
 import { join, dirname } from 'path';
@@ -93,6 +94,19 @@ export function createCLI(): Command {
     .action(async (url, options) => {
       try {
         await discoverCommand(url, options);
+      } catch (err) { handleError(err); }
+    });
+
+  program
+    .command('deploy')
+    .description('Deploy an MCP server to Cloudflare Workers')
+    .argument('<spec>', 'OpenAPI spec path or URL (.json / .yaml)')
+    .option('-n, --name <name>', 'Worker name (defaults to spec name)')
+    .option('-a, --auth <token>', 'API token for bearer authentication')
+    .option('--dry-run', 'Generate worker files without deploying')
+    .action(async (spec, options) => {
+      try {
+        await deployCommand(spec, options);
       } catch (err) { handleError(err); }
     });
 
