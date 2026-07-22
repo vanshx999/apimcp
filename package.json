@@ -1,5 +1,5 @@
 {
-  "name": "apimcp",
+  "name": "@vanshx999/apimcp",
   "version": "0.1.0",
   "description": "Convert any OpenAPI spec into an MCP server. Supports the 2026-07-28 MCP spec.",
   "type": "module",
