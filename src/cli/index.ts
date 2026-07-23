@@ -6,6 +6,7 @@ import { inspectCommand } from './inspect.js';
 import { demoCommand } from './demo.js';
 import { discoverCommand } from './discover.js';
 import { deployCommand } from './deploy.js';
+import { connectCommand } from './connect.js';
 import { runTUI } from './tui.js';
 import { readFileSync } from 'fs';
 import { join, dirname } from 'path';
@@ -107,6 +108,16 @@ export function createCLI(): Command {
     .action(async (spec, options) => {
       try {
         await deployCommand(spec, options);
+      } catch (err) { handleError(err); }
+    });
+
+  program
+    .command('connect')
+    .description('Bridge a remote MCP server URL to local stdio')
+    .argument('<url>', 'Remote MCP server URL (e.g. https://my-worker.workers.dev)')
+    .action(async (url) => {
+      try {
+        await connectCommand(url);
       } catch (err) { handleError(err); }
     });
 

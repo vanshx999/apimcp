@@ -348,6 +348,13 @@ const HTML = `<!DOCTYPE html>
     }
     .endpoint-item:last-child { border-bottom: none; }
     .endpoint-item:hover { background: rgba(255,255,255,0.02); }
+    .endpoint-more {
+      text-align: center;
+      padding: 16px;
+      color: var(--text-dim);
+      font-size: 0.85rem;
+      border-top: 1px solid var(--border);
+    }
     .method-tag {
       font-family: 'JetBrains Mono', monospace;
       font-size: 0.65rem;
@@ -505,6 +512,41 @@ const HTML = `<!DOCTYPE html>
     .code-block .comment { color: var(--text-muted); }
     .code-block .string { color: var(--accent); }
     .code-block .keyword { color: var(--put); }
+    .claude-config {
+      margin-top: 24px;
+      background: rgba(90,200,250,0.06);
+      border: 1px solid rgba(90,200,250,0.15);
+      border-radius: 16px;
+      padding: 20px;
+    }
+    .claude-config h4 {
+      margin: 0 0 4px 0;
+      font-size: 15px;
+      color: var(--accent);
+    }
+    .claude-config .config-hint {
+      margin: 0 0 12px 0;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+    .claude-config .config-hint code {
+      background: var(--bg-mid);
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+    }
+    .claude-config pre {
+      background: var(--bg-deep);
+      border-radius: 10px;
+      padding: 14px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      line-height: 1.5;
+      overflow-x: auto;
+      margin: 0;
+      border: 1px solid var(--border);
+    }
 
     .footer {
       margin-top: auto;
@@ -593,14 +635,14 @@ const HTML = `<!DOCTYPE html>
 
     <section class="input-section">
       <div class="input-group">
-        <input type="text" id="specUrl" placeholder="https://petstore.swagger.io/api/v3/openapi.json" autocomplete="off">
+        <input type="text" id="specUrl" placeholder="https://petstore3.swagger.io/api/v3/openapi.json" autocomplete="off">
         <button class="btn" id="deployBtn" onclick="parseSpec()">Deploy →</button>
       </div>
       <div class="error-msg" id="errorMsg"></div>
     </section>
 
     <div class="examples">
-      <button class="pill" onclick="fillExample('https://petstore.swagger.io/api/v3/openapi.json')">Petstore API</button>
+      <button class="pill" onclick="fillExample('https://petstore3.swagger.io/api/v3/openapi.json')">Petstore API</button>
       <button class="pill" onclick="fillExample('https://raw.githubusercontent.com/github/rest-api-description/main/descriptions/api.github.com/api.github.com.json')">GitHub API</button>
       <button class="pill" onclick="fillExample('https://raw.githubusercontent.com/stripe/openapi/master/openapi/spec3.json')">Stripe API</button>
     </div>
@@ -635,6 +677,11 @@ const HTML = `<!DOCTYPE html>
       <div class="url-field">
         <input type="text" id="deployedUrl" readonly value="">
         <button class="copy-btn" id="copyBtn" onclick="copyUrl()">Copy URL</button>
+      </div>
+      <div class="claude-config">
+        <h4>Use in Claude Desktop</h4>
+        <p class="config-hint">Paste this into <code>claude_desktop_config.json</code> (Settings → Developer → Edit Config)</p>
+        <pre id="claudeConfigCode"></pre>
       </div>
       <div class="code-block">
         <h4>List available tools</h4>
@@ -746,13 +793,22 @@ const HTML = `<!DOCTYPE html>
 
       const list = document.getElementById('endpointList');
       list.innerHTML = '';
-      (data.endpoints || []).forEach(ep => {
+      const eps = data.endpoints || [];
+      const max = 50;
+      const toShow = eps.length > max ? eps.slice(0, max) : eps;
+      toShow.forEach(ep => {
         const item = document.createElement('div');
         item.className = 'endpoint-item';
         const method = (ep.method || 'GET').toLowerCase();
         item.innerHTML = '<span class="method-tag ' + method + '">' + (ep.method || 'GET') + '</span><span class="endpoint-path">' + (ep.path || '/') + '</span><span class="endpoint-name">' + (ep.toolName || ep.operationId || 'unnamed') + '</span>';
         list.appendChild(item);
       });
+      if (eps.length > max) {
+        const more = document.createElement('div');
+        more.className = 'endpoint-more';
+        more.textContent = '+ ' + (eps.length - max) + ' more endpoints';
+        list.appendChild(more);
+      }
     }
 
     async function deployToCloudflare() {
@@ -786,8 +842,9 @@ const HTML = `<!DOCTYPE html>
       document.getElementById('deployedUrl').value = url;
       localStorage.setItem('apimcp_last_deployed', currentUrl);
 
-      document.getElementById('listToolsCode').innerHTML = '<span class="comment"># List all available tools</span>\n<span class="keyword">curl</span> ' + url + '/tools';
-      document.getElementById('callToolCode').innerHTML = '<span class="comment"># Call a tool (e.g., findPetsByStatus)</span>\n<span class="keyword">curl</span> -X POST ' + url + ' \\\n  -H <span class="string">"Content-Type: application/json"</span> \\\n  -d <span class="string">\'{"name":"findPetsByStatus","arguments":{"status":"available"}}\'</span>';
+      document.getElementById('listToolsCode').innerHTML = '<span class="comment"># List all available tools</span>\\n<span class="keyword">curl</span> ' + url + '/tools';
+      document.getElementById('callToolCode').innerHTML = '<span class="comment"># Call a tool (e.g., findPetsByStatus)</span>\\n<span class="keyword">curl</span> -X POST ' + url + ' \\\\\\n  -H <span class="string">"Content-Type: application/json"</span> \\\\\\n  -d <span class="string">\\'{"name":"findPetsByStatus","arguments":{"status":"available"}}\\'</span>';
+      document.getElementById('claudeConfigCode').textContent = '{\\n  "mcpServers": {\\n    "my-api": {\\n      "url": "' + url + '"\\n    }\\n  }\\n}';
     }
 
     function copyUrl() {
@@ -866,26 +923,39 @@ function resolveRequestBody(reqBody, spec) {
 
 function parseOpenAPISimple(specData) {
   const info = specData.info || {};
+  const isSwagger2 = !specData.openapi && specData.swagger === '2.0';
   const paths = specData.paths || {};
-  const components = specData.components || {};
-  const schemas = components.schemas || {};
-  const mergedSpec = { ...specData, components: { ...components, schemas } };
+
+  let serverUrl;
+  if (isSwagger2) {
+    const scheme = (specData.schemes || ['https'])[0];
+    const host = specData.host || 'unknown';
+    const basePath = specData.basePath || '';
+    serverUrl = scheme + '://' + host + basePath;
+  } else {
+    serverUrl = ((specData.servers || [])[0] || {}).url || 'https://unknown';
+  }
+
+  const schemas = isSwagger2 ? (specData.definitions || {}) : ((specData.components || {}).schemas || {});
+  const mergedSpec = isSwagger2 ? { ...specData, components: { schemas } } : { ...specData, components: { ...specData.components, schemas } };
+
   const endpoints = [];
 
   for (const [path, methods] of Object.entries(paths)) {
     if (!methods || typeof methods !== 'object') continue;
+    const pathParams = methods.parameters || [];
     for (const [method, details] of Object.entries(methods)) {
       if (!details || typeof details !== 'object') continue;
       if (method === 'parameters') continue;
 
-      const rawParams = details.parameters || [];
+      const rawParams = [...pathParams, ...(details.parameters || [])];
       const params = resolveParams(rawParams, mergedSpec);
       const body = resolveRequestBody(details.requestBody, mergedSpec);
 
       endpoints.push({
         method: method.toUpperCase(),
         path,
-        toolName: details.operationId || path.replace(/[^a-zA-Z0-9]/g, '_').replace(/^_|_$/g, ''),
+        toolName: (details.operationId || path).replace(/[^a-zA-Z0-9_-]/g, '_').replace(/^_+|_+$/g, '').substring(0, 64) || 'unnamed',
         summary: details.summary || '',
         description: details.description || '',
         hasBody: !!body,
@@ -903,12 +973,12 @@ function parseOpenAPISimple(specData) {
   return {
     name: info.title || 'Unknown API',
     version: info.version || '1.0.0',
-    serverUrl: ((specData.servers || [])[0] || {}).url || 'https://unknown',
+    serverUrl,
     endpoints,
   };
 }
 
-function generateWorkerCode(parsed) {
+function generateWorkerCode(parsed, specUrl) {
   const endpoints = parsed.endpoints.map(ep => ({
     name: ep.toolName,
     method: ep.method,
@@ -917,14 +987,22 @@ function generateWorkerCode(parsed) {
     hasBody: ep.hasBody,
   }));
 
+  let serverUrl = parsed.serverUrl;
+  if (serverUrl && !serverUrl.startsWith('http')) {
+    try {
+      const u = new URL(specUrl);
+      serverUrl = u.protocol + '//' + u.host + (serverUrl.startsWith('/') ? '' : '/') + serverUrl;
+    } catch {}
+  }
+
   return `
 const TOOLS = ${JSON.stringify(endpoints, null, 2)};
 
-function url(path) { return ${JSON.stringify(parsed.serverUrl)}.replace(/\\/+$/, '') + path; }
+function url(path) { return ${JSON.stringify(serverUrl)}.replace(/\\/+$/, '') + path; }
 
 async function callTool(name, args) {
   const tool = TOOLS.find(t => t.name === name);
-  if (!tool) return { error: 'Unknown tool: ' + name };
+  if (!tool) return { status: 400, body: JSON.stringify({ error: 'Unknown tool: ' + name }) };
   let path = tool.path;
   const query = new URLSearchParams();
   let body;
@@ -933,24 +1011,60 @@ async function callTool(name, args) {
     else if (k === 'body') body = typeof args.body === 'string' ? args.body : JSON.stringify(args.body);
     else query.set(k, String(args[k]));
   }
-  const res = await fetch(url(path) + (query.toString() ? '?' + query.toString() : ''), {
-    method: tool.method, headers: { 'Content-Type': 'application/json', 'User-Agent': 'apimcp-worker/1.0' },
-    body: tool.method !== 'GET' ? body : undefined,
-  });
-  return { status: res.status, body: await res.text() };
+  try {
+    const res = await fetch(url(path) + (query.toString() ? '?' + query.toString() : ''), {
+      method: tool.method, headers: { 'Content-Type': 'application/json', 'User-Agent': 'apimcp-worker/1.0' },
+      body: tool.method !== 'GET' ? body : undefined,
+    });
+    return { status: res.status, body: await res.text() };
+  } catch (e) {
+    return { status: 500, body: JSON.stringify({ error: e.message }) };
+  }
+}
+
+function mcpTool(t) {
+  const props = {};
+  for (const p of (t.params || [])) {
+    props[p.name] = { type: p.type === 'integer' ? 'number' : (p.type || 'string'), description: p.description || '' };
+  }
+  return { name: t.name, description: t.description || '', inputSchema: { type: 'object', properties: props, required: (t.params || []).filter(p => p.required).map(p => p.name) } };
+}
+
+async function handleMCP(req) {
+  const { id, method, params } = req;
+  const respond = (result, err) => {
+    const body = { jsonrpc: '2.0', id: id !== undefined ? id : null };
+    if (err) body.error = { code: -32603, message: err };
+    else body.result = result;
+    return new Response(JSON.stringify(body), { headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } });
+  };
+  if (method === 'initialize') return respond({ protocolVersion: '2025-03-26', capabilities: { tools: {} }, serverInfo: { name: 'apimcp', version: '1.0.0' } });
+  if (method === 'notifications/initialized' || method === 'notifications/cancelled') return respond(null);
+  if (method === 'ping') return respond({});
+  if (method === 'tools/list') return respond({ tools: TOOLS.map(mcpTool) });
+  if (method === 'tools/call') {
+    const result = await callTool(params.name, params.arguments || {});
+    const text = typeof result.body === 'string' ? result.body : JSON.stringify(result.body);
+    return respond({ content: [{ type: 'text', text }], isError: result.status >= 400 });
+  }
+  return respond(null, 'Method not found: ' + method);
 }
 
 export default {
   async fetch(request) {
-    const url = new URL(request.url);
+    const u = new URL(request.url);
     if (request.method === 'OPTIONS') return new Response(null, { headers: { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type' } });
-    if (request.method === 'GET' && url.pathname === '/tools') return new Response(JSON.stringify(TOOLS.map(t => ({ name: t.name, method: t.method, path: t.path }))), { headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } });
+    if (request.method === 'GET' && u.pathname === '/tools') return new Response(JSON.stringify(TOOLS.map(t => ({ name: t.name, method: t.method, path: t.path }))), { headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } });
     if (request.method === 'POST') {
       try {
-        const { name, arguments: args } = await request.json();
+        const body = await request.json();
+        if (body.jsonrpc === '2.0') return handleMCP(body);
+        const { name, arguments: args } = body;
         const result = await callTool(name, args || {});
         return new Response(JSON.stringify(result), { headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } });
-      } catch (e) { return new Response(JSON.stringify({ error: e.message }), { status: 400, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } }); }
+      } catch (e) {
+        return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } });
+      }
     }
     return new Response('Not found', { status: 404 });
   }
@@ -982,12 +1096,39 @@ export default {
       try {
         const { url: specUrl } = await request.json();
         if (!specUrl) return json({ message: 'URL is required' }, 400);
-        const res = await fetch(specUrl);
-        if (!res.ok) return json({ message: 'Failed to fetch spec: HTTP ' + res.status }, 400);
+
+        let res = await fetch(specUrl);
+        let tryAlt = !res.ok;
+        if (res.ok) {
+          const ct = (res.headers.get('content-type') || '');
+          if (!ct.includes('json') && !ct.includes('yaml') && !specUrl.match(/\.(json|yaml|yml)$/i)) {
+            tryAlt = true;
+          }
+        }
+        if (tryAlt) {
+          const u = new URL(specUrl);
+          const origins = [u.origin, u.origin + '/api', u.origin + '/v2', u.origin + '/api/v3', u.origin + '/api/v2'];
+          const specs = ['/openapi.json', '/swagger.json', '/openapi.yaml', '/swagger.yaml'];
+          let found = false;
+          for (const origin of origins) {
+            for (const spec of specs) {
+              const alt = origin + spec;
+              if (alt === specUrl) continue;
+              res = await fetch(alt);
+              if (res.ok) { found = true; break; }
+            }
+            if (found) break;
+          }
+          if (!found) {
+            const hint = specUrl.includes('petstore') ? ' Try petstore3.swagger.io/api/v3/openapi.json' : '';
+            return json({ message: 'Could not find an OpenAPI spec at that URL.' + hint }, 400);
+          }
+        }
         const text = await res.text();
         const contentType = res.headers.get('content-type') || '';
+        const finalUrl = res.url || specUrl;
         let specData;
-        if (contentType.includes('yaml') || specUrl.match(/\.(yaml|yml)$/i)) {
+        if (contentType.includes('yaml') || finalUrl.match(/\.(yaml|yml)$/i)) {
           specData = parseYaml(text);
         } else {
           try { specData = JSON.parse(text); } catch { specData = parseYaml(text); }
@@ -1010,13 +1151,14 @@ export default {
         try { specData = JSON.parse(text); } catch { specData = parseYaml(text); }
         const parsed = parseOpenAPISimple(specData);
         const safeName = (name || parsed.name || 'api').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'api-server';
-        const workerCode = generateWorkerCode(parsed);
+        const workerCode = generateWorkerCode(parsed, specUrl);
 
         const cfToken = env.CF_API_TOKEN;
         const accountId = env.CF_ACCOUNT_ID;
+        const cfSubdomain = env.CF_SUBDOMAIN || 'vanshmehndiratta13';
 
         if (!cfToken || !accountId) {
-          const deployUrl = 'https://' + safeName + '.apimcp-demo.workers.dev';
+          const deployUrl = 'https://' + safeName + '.' + cfSubdomain + '.workers.dev';
           return json({
             url: deployUrl,
             note: 'Dry run — deploy the CLI version for a live URL: apimcp deploy <spec>',
@@ -1024,22 +1166,47 @@ export default {
         }
 
         const subdomain = safeName + '-' + Date.now().toString(36);
-        const form = new FormData();
-        form.append('worker.js', new Blob([workerCode], { type: 'application/javascript' }));
-        form.append('metadata', JSON.stringify({ main_module: 'worker.js' }));
+        const metadata = JSON.stringify({ main_module: 'worker.js' });
+        const boundary = '----WebKitFormBoundary' + Math.random().toString(36).slice(2);
+
+        let body = '';
+        body += '--' + boundary + '\r\n';
+        body += 'Content-Disposition: form-data; name="worker.js"; filename="worker.js"\r\n';
+        body += 'Content-Type: application/javascript+module\r\n\r\n';
+        body += workerCode;
+        body += '\r\n--' + boundary + '\r\n';
+        body += 'Content-Disposition: form-data; name="metadata"\r\n';
+        body += 'Content-Type: application/json\r\n\r\n';
+        body += metadata;
+        body += '\r\n--' + boundary + '--\r\n';
 
         const cfRes = await fetch('https://api.cloudflare.com/client/v4/accounts/' + accountId + '/workers/scripts/' + subdomain, {
           method: 'PUT',
-          headers: { 'Authorization': 'Bearer ' + cfToken },
-          body: form,
+          headers: {
+            'Authorization': 'Bearer ' + cfToken,
+            'Content-Type': 'multipart/form-data; boundary=' + boundary,
+          },
+          body,
         });
 
-        const cfResult = await cfRes.json();
+        const cfText = await cfRes.text();
+        let cfResult;
+        try { cfResult = JSON.parse(cfText); } catch { return json({ message: 'CF API response not JSON: ' + cfText.slice(0, 500) }, 500); }
         if (!cfResult.success) {
           return json({ message: (cfResult.errors && cfResult.errors[0] && cfResult.errors[0].message) || 'Cloudflare API error' }, 500);
         }
 
-        const deployUrl = 'https://' + subdomain + '.apimcp-demo.workers.dev';
+        await fetch('https://api.cloudflare.com/client/v4/accounts/' + accountId + '/workers/scripts/' + subdomain + '/subdomain', {
+          method: 'POST',
+          headers: {
+            'Authorization': 'Bearer ' + cfToken,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ enabled: true }),
+        });
+        await new Promise(r => setTimeout(r, 3000));
+
+        const deployUrl = 'https://' + subdomain + '.' + cfSubdomain + '.workers.dev';
         return json({ url: deployUrl });
       } catch (err) {
         return json({ message: err.message || 'Deploy failed' }, 500);
