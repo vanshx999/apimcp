@@ -983,6 +983,7 @@ function generateWorkerCode(parsed, specUrl) {
     name: ep.toolName,
     method: ep.method,
     path: ep.path,
+    summary: ep.summary || '',
     params: ep.parameters.filter(p => p.in !== 'header').map(p => ({ name: p.name, required: p.required, type: p.type })),
     hasBody: ep.hasBody,
   }));
@@ -1027,43 +1028,61 @@ function mcpTool(t) {
   for (const p of (t.params || [])) {
     props[p.name] = { type: p.type === 'integer' ? 'number' : (p.type || 'string'), description: p.description || '' };
   }
-  return { name: t.name, description: t.description || '', inputSchema: { type: 'object', properties: props, required: (t.params || []).filter(p => p.required).map(p => p.name) } };
+  const desc = t.summary || t.description || t.method + ' ' + t.path;
+  return { name: t.name, description: desc, inputSchema: { type: 'object', properties: props, required: (t.params || []).filter(p => p.required).map(p => p.name) } };
+}
+
+function rpc(id, result, err) {
+  const body = { jsonrpc: '2.0', id: id !== undefined ? id : null };
+  if (err) body.error = { code: -32603, message: err };
+  else body.result = result;
+  return body;
+}
+
+function jsonResp(data, status = 200) {
+  return new Response(JSON.stringify(data), { status, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*', 'X-Content-Type-Options': 'nosniff' } });
 }
 
 async function handleMCP(req) {
   const { id, method, params } = req;
-  const respond = (result, err) => {
-    const body = { jsonrpc: '2.0', id: id !== undefined ? id : null };
-    if (err) body.error = { code: -32603, message: err };
-    else body.result = result;
-    return new Response(JSON.stringify(body), { headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } });
-  };
-  if (method === 'initialize') return respond({ protocolVersion: '2025-03-26', capabilities: { tools: {} }, serverInfo: { name: 'apimcp', version: '1.0.0' } });
-  if (method === 'notifications/initialized' || method === 'notifications/cancelled') return respond(null);
-  if (method === 'ping') return respond({});
-  if (method === 'tools/list') return respond({ tools: TOOLS.map(mcpTool) });
+  if (method === 'initialize') return jsonResp(rpc(id, { protocolVersion: '2025-11-25', capabilities: { tools: {} }, serverInfo: { name: 'apimcp', version: '1.0.0' } }));
+  if (method === 'notifications/initialized' || method === 'notifications/cancelled') return new Response(null, { status: 202 });
+  if (method === 'ping') return jsonResp(rpc(id, {}));
+  if (method === 'tools/list') return jsonResp(rpc(id, { tools: TOOLS.map(mcpTool) }));
   if (method === 'tools/call') {
     const result = await callTool(params.name, params.arguments || {});
     const text = typeof result.body === 'string' ? result.body : JSON.stringify(result.body);
-    return respond({ content: [{ type: 'text', text }], isError: result.status >= 400 });
+    return jsonResp(rpc(id, { content: [{ type: 'text', text }], isError: result.status >= 400 }));
   }
-  return respond(null, 'Method not found: ' + method);
+  const errBody = { jsonrpc: '2.0', id: id !== undefined ? id : null, error: { code: -32601, message: 'Method not found: ' + method } };
+  return new Response(JSON.stringify(errBody), { status: 404, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*', 'X-Content-Type-Options': 'nosniff' } });
 }
 
 export default {
   async fetch(request) {
-    const u = new URL(request.url);
-    if (request.method === 'OPTIONS') return new Response(null, { headers: { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type' } });
-    if (request.method === 'GET' && u.pathname === '/tools') return new Response(JSON.stringify(TOOLS.map(t => ({ name: t.name, method: t.method, path: t.path }))), { headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } });
+    const url = new URL(request.url);
+    if (request.method === 'OPTIONS') {
+      return new Response(null, { headers: { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS, DELETE', 'Access-Control-Allow-Headers': 'Content-Type, Accept, MCP-Protocol-Version, MCP-Session-Id, Mcp-Method, Mcp-Name' } });
+    }
+    if (request.method === 'GET') {
+      if (url.pathname === '/tools') return jsonResp(TOOLS.map(t => ({ name: t.name, method: t.method, path: t.path })));
+      return new Response(null, { status: 405, headers: { 'Allow': 'POST, OPTIONS', 'Access-Control-Allow-Origin': '*' } });
+    }
+    if (request.method === 'DELETE') {
+      return new Response(null, { status: 405, headers: { 'Allow': 'POST, OPTIONS', 'Access-Control-Allow-Origin': '*' } });
+    }
     if (request.method === 'POST') {
       try {
         const body = await request.json();
-        if (body.jsonrpc === '2.0') return handleMCP(body);
+        if (body && body.jsonrpc === '2.0') {
+          if (body.id === undefined) return new Response(null, { status: 202 });
+          return handleMCP(body);
+        }
         const { name, arguments: args } = body;
         const result = await callTool(name, args || {});
-        return new Response(JSON.stringify(result), { headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } });
+        return jsonResp(result, result.status && result.status >= 400 ? result.status : 200);
       } catch (e) {
-        return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } });
+        return jsonResp({ error: e.message }, 500);
       }
     }
     return new Response('Not found', { status: 404 });

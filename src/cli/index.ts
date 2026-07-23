@@ -6,7 +6,7 @@ import { inspectCommand } from './inspect.js';
 import { demoCommand } from './demo.js';
 import { discoverCommand } from './discover.js';
 import { deployCommand } from './deploy.js';
-import { connectCommand } from './connect.js';
+import { connectCommand, listDaemons, stopDaemon } from './connect.js';
 import { runTUI } from './tui.js';
 import { readFileSync } from 'fs';
 import { join, dirname } from 'path';
@@ -115,10 +115,27 @@ export function createCLI(): Command {
     .command('connect')
     .description('Bridge a remote MCP server URL to local stdio')
     .argument('<url>', 'Remote MCP server URL (e.g. https://my-worker.workers.dev)')
-    .action(async (url) => {
+    .option('--daemon <name>', 'Run as a named background daemon')
+    .option('--stdio <name>', 'Connect stdin/stdout to a running daemon')
+    .action(async (url, options) => {
       try {
-        await connectCommand(url);
+        await connectCommand(url, options);
       } catch (err) { handleError(err); }
+    });
+
+  program
+    .command('ps')
+    .description('List running daemon processes')
+    .action(() => {
+      listDaemons();
+    });
+
+  program
+    .command('disconnect')
+    .description('Stop a running daemon')
+    .argument('<name>', 'Daemon name')
+    .action((name) => {
+      stopDaemon(name);
     });
 
   return program;
