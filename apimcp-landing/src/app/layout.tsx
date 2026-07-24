@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
+import { Analytics } from "@vercel/analytics/react"
 import SessionProvider from "@/components/SessionProvider";
 import "./globals.css";
 
@@ -36,7 +37,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${plexMono.variable} ${plexSans.variable}`}>
       <body className="bg-surface text-text font-sans antialiased noise-overlay">
-        <SessionProvider>{children}</SessionProvider>
+        <SessionProvider>{children}<Analytics /></SessionProvider>
       </body>
     </html>
   );

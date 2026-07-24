@@ -1,7 +1,9 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useSession, signIn } from 'next-auth/react'
+import { track } from '@vercel/analytics'
+import Link from 'next/link'
 
 type ParseResult = {
   name: string
@@ -13,7 +15,7 @@ type ParseResult = {
 export default function StampButton({ onStamp, prefillUrl }: { onStamp?: () => void; prefillUrl?: string }) {
   const { data: session } = useSession()
   const [url, setUrl] = useState(prefillUrl || '')
-  const [state, setState] = useState<'idle' | 'parsing' | 'deploying' | 'done' | 'error'>('idle')
+  const [state, setState] = useState<'idle' | 'parsing' | 'deploying' | 'done' | 'error' | 'needs-cf'>('idle')
   const [showStamp, setShowStamp] = useState(false)
   const [result, setResult] = useState<ParseResult | null>(null)
   const [deployUrl, setDeployUrl] = useState('')
@@ -21,6 +23,14 @@ export default function StampButton({ onStamp, prefillUrl }: { onStamp?: () => v
   const [shaking, setShaking] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
   const [copied, setCopied] = useState(false)
+
+  useEffect(() => {
+    if (session) {
+      fetch('/api/settings').then(r => r.json()).then(d => {
+        if (!d.configured) setState('needs-cf')
+      }).catch(() => {})
+    }
+  }, [session])
 
   const handleStamp = async () => {
     if (!url.trim()) {
@@ -33,8 +43,15 @@ export default function StampButton({ onStamp, prefillUrl }: { onStamp?: () => v
       signIn('github')
       return
     }
+    const checkCf = await fetch('/api/settings')
+    const cfData = await checkCf.json()
+    if (!cfData.configured) {
+      setState('needs-cf')
+      return
+    }
     setState('parsing')
     setErrorMsg('')
+    track('Parse Spec', { url: url.trim() })
     try {
       const parseRes = await fetch('/api/parse', {
         method: 'POST',
@@ -45,6 +62,7 @@ export default function StampButton({ onStamp, prefillUrl }: { onStamp?: () => v
       if (!parseRes.ok) throw new Error(parseData.error || 'Parse failed')
       setResult(parseData)
       setState('deploying')
+      track('Deploy Worker', { url: url.trim(), endpoints: parseData.endpoints?.length || 0 })
       const deployRes = await fetch('/api/deploy', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -53,11 +71,13 @@ export default function StampButton({ onStamp, prefillUrl }: { onStamp?: () => v
       const deployData = await deployRes.json()
       if (!deployRes.ok) throw new Error(deployData.error || 'Deploy failed')
       setDeployUrl(deployData.url)
+      track('Deploy Complete', { url: deployData.url })
       setState('done')
       setShowStamp(true)
       onStamp?.()
       setTimeout(() => setShowStamp(false), 4000)
     } catch (e: any) {
+      track('Deploy Error', { error: e.message })
       setErrorMsg(e.message)
       setState('error')
     }
@@ -145,11 +165,11 @@ export default function StampButton({ onStamp, prefillUrl }: { onStamp?: () => v
 
         <div className="mt-6 flex items-center gap-4">
           <button
-            onClick={handleStamp}
-            disabled={state === 'parsing' || state === 'deploying' || state === 'done'}
+            onClick={() => { if (state === 'needs-cf') window.location.href = '/dashboard'; else handleStamp() }}
+            disabled={state !== 'idle' && state !== 'needs-cf'}
             className="group relative px-8 py-3.5 font-semibold text-sm uppercase tracking-[0.15em] transition-all duration-200 disabled:opacity-40 overflow-hidden"
             style={{
-              background: state === 'done' ? '#302C27' : '#4F7FFF',
+              background: state === 'done' ? '#302C27' : state === 'needs-cf' ? '#FF6B35' : '#4F7FFF',
               color: '#F0ECE1',
               clipPath: 'polygon(12px 0, 100% 0, 100% 100%, 0 100%, 0 12px)',
             }}>
@@ -167,6 +187,11 @@ export default function StampButton({ onStamp, prefillUrl }: { onStamp?: () => v
               ) : state === 'done' ? (
                 <>
                   <span>●</span> APPROVED
+                </>
+              ) : state === 'needs-cf' ? (
+                <>
+                  <span className="animate-pulse">!</span>
+                  Connect Cloudflare
                 </>
               ) : (
                 <>
@@ -219,6 +244,20 @@ export default function StampButton({ onStamp, prefillUrl }: { onStamp?: () => v
             <div className="mt-2 text-[10px] text-text-dim/50 text-center">
               Connect in Claude Desktop: Settings → Connectors → Add URL
             </div>
+          </div>
+        )}
+
+        {state === 'needs-cf' && (
+          <div className="mt-4 p-4 border border-stamp/30 bg-stamp/[0.05] text-center"
+            style={{ clipPath: 'polygon(6px 0, 100% 0, 100% 100%, 0 100%, 0 6px)' }}>
+            <div className="text-xs font-mono text-stamp/80 mb-2">
+              Connect your Cloudflare account to deploy.
+            </div>
+            <Link href="/dashboard"
+              className="inline-block px-5 py-2 text-[10px] font-mono font-semibold uppercase tracking-wider bg-stamp text-paper hover:bg-stamp/80 transition-colors"
+              style={{ clipPath: 'polygon(4px 0, 100% 0, 100% 100%, 0 100%, 0 4px)' }}>
+              Go to Dashboard →
+            </Link>
           </div>
         )}
 
