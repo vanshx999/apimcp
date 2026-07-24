@@ -19,6 +19,7 @@ export default function DashboardClient({ deployments, cfWorkers, user, hasOwnTo
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [showTokenForm, setShowTokenForm] = useState(!hasOwnToken)
+  const [deleting, setDeleting] = useState<string | null>(null)
 
   const allDeployments = [
     ...deployments.map(d => ({ ...d, source: 'apimcp' as const })),
@@ -41,6 +42,20 @@ export default function DashboardClient({ deployments, cfWorkers, user, hasOwnTo
       }
     } catch {}
     setSaving(false)
+  }
+
+  const deleteWorker = async (name: string) => {
+    setDeleting(name)
+    try {
+      const res = await fetch('/api/delete-worker', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name }),
+      })
+      if (res.ok) window.location.reload()
+      else { const d = await res.json(); alert(d.error || 'Delete failed') }
+    } catch { alert('Delete failed') }
+    setDeleting(null)
   }
 
   const removeToken = async () => {
@@ -151,6 +166,11 @@ export default function DashboardClient({ deployments, cfWorkers, user, hasOwnTo
                   className="text-[10px] font-mono text-blueprint hover:underline uppercase tracking-wider flex-shrink-0">
                   Open
                 </a>
+                <button onClick={() => deleteWorker(d.name)}
+                  disabled={deleting === d.name}
+                  className="text-[10px] font-mono text-stamp/60 hover:text-stamp transition-colors uppercase tracking-wider flex-shrink-0 disabled:opacity-30">
+                  {deleting === d.name ? '...' : 'Delete'}
+                </button>
               </div>
             ))
           )}

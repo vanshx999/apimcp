@@ -16,8 +16,20 @@ const plexSans = IBM_Plex_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "apimcp — Turn any API into an AI agent",
-  description: "Convert any OpenAPI spec into a deployable MCP server. One click. No setup.",
+  title: "apimcp — Any API → MCP server. No terminal.",
+  description: "Paste any OpenAPI spec. Get a live MCP server on your Cloudflare in one click. No CLI, no Docker, no DevOps.",
+  openGraph: {
+    title: "apimcp — Any API → MCP server. No terminal.",
+    description: "Paste any OpenAPI spec. Get a live MCP server on your Cloudflare in one click. No CLI, no Docker, no DevOps.",
+    url: "https://apimcp-landing.vercel.app",
+    siteName: "apimcp",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "apimcp — Any API → MCP server. No terminal.",
+    description: "Paste any OpenAPI spec. Get a live MCP server on your Cloudflare in one click. No CLI, no Docker, no DevOps.",
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
