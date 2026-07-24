@@ -1,4 +1,6 @@
 node_modules/
 dist/
 *.tgz
+apimcp-landing/node_modules/
+apimcp-landing/.next/
 .apimcp-deploy-*/
