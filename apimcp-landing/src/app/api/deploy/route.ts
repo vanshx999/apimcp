@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { load as parseYaml } from 'js-yaml'
 import { auth } from '@/auth'
+import { readSettings, addDeployment } from '@/lib/cookie-store'
 
 function resolveRef(ref: string, spec: any): any {
   const parts = ref.replace(/^#\//, '').split('/')
@@ -263,9 +264,10 @@ export async function POST(request: Request) {
     const safeName = (name || parsed.name || 'api').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'api-server'
     const workerCode = generateWorkerCode(parsed, specUrl)
 
-    const cfToken = process.env.CF_API_TOKEN
-    const accountId = process.env.CF_ACCOUNT_ID
-    const cfSubdomain = process.env.CF_SUBDOMAIN || 'vanshmehndiratta13'
+    const userSettings = await readSettings()
+    const cfToken = userSettings.cloudflareToken || process.env.CF_API_TOKEN
+    const accountId = userSettings.accountId || process.env.CF_ACCOUNT_ID
+    const cfSubdomain = userSettings.subdomain || process.env.CF_SUBDOMAIN || 'vanshmehndiratta13'
 
     if (!cfToken || !accountId) {
       const deployUrl = 'https://' + safeName + '.' + cfSubdomain + '.workers.dev'
@@ -317,6 +319,15 @@ export async function POST(request: Request) {
     await new Promise(r => setTimeout(r, 3000))
 
     const deployUrl = 'https://' + subdomain + '.' + cfSubdomain + '.workers.dev'
+
+    await addDeployment({
+      name: safeName,
+      url: deployUrl,
+      specUrl: specUrl || '',
+      createdAt: new Date().toISOString(),
+      toolsCount: parsed.endpoints.length,
+    })
+
     return NextResponse.json({ url: deployUrl })
   } catch (e: any) {
     return NextResponse.json({ error: e.message || 'Deploy failed' }, { status: 500 })

@@ -2,6 +2,7 @@
 
 import { useRef, useEffect, useState } from 'react'
 import dynamic from 'next/dynamic'
+import Link from 'next/link'
 import { useSession, signIn, signOut } from 'next-auth/react'
 import Lenis from '@studio-freight/lenis'
 import StampButton from '@/components/StampButton'
@@ -14,12 +15,16 @@ const Hero3DScene = dynamic(() => import('@/components/Hero3DScene'), { ssr: fal
 
 export default function Home() {
   const { data: session } = useSession()
+  const [prefillUrl, setPrefillUrl] = useState('')
   const heroRef = useRef<Hero3DHandle>(null!)
   const containerRef = useRef<HTMLDivElement>(null!)
   const [passport, setPassport] = useState('XXXX')
 
   useEffect(() => {
     setPassport(Date.now().toString(36).slice(-4).toUpperCase())
+    const params = new URLSearchParams(window.location.search)
+    const urlParam = params.get('url')
+    if (urlParam) setPrefillUrl(urlParam)
   }, [])
 
   useEffect(() => {
@@ -57,6 +62,10 @@ export default function Home() {
                 {session.user?.image && (
                   <img src={session.user.image} alt="" className="w-6 h-6 rounded-full border border-border-light" />
                 )}
+                <Link href="/dashboard"
+                  className="font-mono text-[10px] text-blueprint hover:text-blueprint/80 transition-colors uppercase tracking-wider">
+                  Dashboard
+                </Link>
                 <span className="font-mono text-[10px] text-text-dim hidden sm:inline">{session.user?.name}</span>
                 <button onClick={() => signOut()}
                   className="font-mono text-[10px] text-text-dim/50 hover:text-stamp transition-colors uppercase tracking-wider">
@@ -93,7 +102,7 @@ export default function Home() {
           </div>
 
           <div className="w-full max-w-xl mb-6">
-            <StampButton onStamp={handleStamp} />
+            <StampButton onStamp={handleStamp} prefillUrl={prefillUrl} />
           </div>
 
           <div className="h-4" />

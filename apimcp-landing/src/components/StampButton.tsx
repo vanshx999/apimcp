@@ -10,9 +10,9 @@ type ParseResult = {
   endpoints: { method: string; path: string; toolName: string; summary: string; parameters: any[] }[]
 }
 
-export default function StampButton({ onStamp }: { onStamp?: () => void }) {
+export default function StampButton({ onStamp, prefillUrl }: { onStamp?: () => void; prefillUrl?: string }) {
   const { data: session } = useSession()
-  const [url, setUrl] = useState('')
+  const [url, setUrl] = useState(prefillUrl || '')
   const [state, setState] = useState<'idle' | 'parsing' | 'deploying' | 'done' | 'error'>('idle')
   const [showStamp, setShowStamp] = useState(false)
   const [result, setResult] = useState<ParseResult | null>(null)
