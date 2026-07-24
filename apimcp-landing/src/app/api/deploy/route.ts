@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { load as parseYaml } from 'js-yaml'
+import { auth } from '@/auth'
 
 function resolveRef(ref: string, spec: any): any {
   const parts = ref.replace(/^#\//, '').split('/')
@@ -229,6 +230,10 @@ export default {
 }
 
 export async function POST(request: Request) {
+  const session = await auth()
+  if (!session?.user) {
+    return NextResponse.json({ error: 'Authentication required. Sign in at /login' }, { status: 401 })
+  }
   try {
     const { url: specUrl, name } = await request.json()
     if (!specUrl) {

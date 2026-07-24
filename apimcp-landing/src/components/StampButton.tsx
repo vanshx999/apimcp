@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef } from 'react'
+import { useSession, signIn } from 'next-auth/react'
 
 type ParseResult = {
   name: string
@@ -10,6 +11,7 @@ type ParseResult = {
 }
 
 export default function StampButton({ onStamp }: { onStamp?: () => void }) {
+  const { data: session } = useSession()
   const [url, setUrl] = useState('')
   const [state, setState] = useState<'idle' | 'parsing' | 'deploying' | 'done' | 'error'>('idle')
   const [showStamp, setShowStamp] = useState(false)
@@ -25,6 +27,10 @@ export default function StampButton({ onStamp }: { onStamp?: () => void }) {
       inputRef.current?.focus()
       setShaking(true)
       setTimeout(() => setShaking(false), 500)
+      return
+    }
+    if (!session) {
+      signIn('github')
       return
     }
     setState('parsing')

@@ -2,6 +2,7 @@
 
 import { useRef, useEffect, useState } from 'react'
 import dynamic from 'next/dynamic'
+import { useSession, signIn, signOut } from 'next-auth/react'
 import Lenis from '@studio-freight/lenis'
 import StampButton from '@/components/StampButton'
 import ManifestSteps from '@/components/ManifestSteps'
@@ -12,6 +13,7 @@ import type { Hero3DHandle } from '@/components/Hero3DScene'
 const Hero3DScene = dynamic(() => import('@/components/Hero3DScene'), { ssr: false })
 
 export default function Home() {
+  const { data: session } = useSession()
   const heroRef = useRef<Hero3DHandle>(null!)
   const containerRef = useRef<HTMLDivElement>(null!)
   const [passport, setPassport] = useState('XXXX')
@@ -19,7 +21,6 @@ export default function Home() {
   useEffect(() => {
     setPassport(Date.now().toString(36).slice(-4).toUpperCase())
   }, [])
-
 
   useEffect(() => {
     const lenis = new Lenis({ duration: 1.2, easing: (t) => Math.min(1, 1 - Math.pow(1 - t, 3)) })
@@ -50,10 +51,30 @@ export default function Home() {
             <span className="mx-2 text-text-dim/30">/</span>
             PASSPORT NO. MCP-2026-{passport || 'XXXX'}
           </div>
-          <a href="https://github.com/vanshx999/apimcp" target="_blank" rel="noopener noreferrer"
-            className="font-mono text-xs text-text-dim hover:text-blueprint transition-colors underline underline-offset-4 decoration-1 decoration-border-light">
-            GitHub →
-          </a>
+          <div className="flex items-center gap-4">
+            {session ? (
+              <div className="flex items-center gap-3">
+                {session.user?.image && (
+                  <img src={session.user.image} alt="" className="w-6 h-6 rounded-full border border-border-light" />
+                )}
+                <span className="font-mono text-[10px] text-text-dim hidden sm:inline">{session.user?.name}</span>
+                <button onClick={() => signOut()}
+                  className="font-mono text-[10px] text-text-dim/50 hover:text-stamp transition-colors uppercase tracking-wider">
+                  Exit
+                </button>
+              </div>
+            ) : (
+              <button onClick={() => signIn('github')}
+                className="font-mono text-[10px] text-text-dim hover:text-blueprint transition-colors uppercase tracking-wider">
+                Sign In
+              </button>
+            )}
+            <span className="w-px h-3 bg-border-light/30" />
+            <a href="https://github.com/vanshx999/apimcp" target="_blank" rel="noopener noreferrer"
+              className="font-mono text-[10px] text-text-dim hover:text-blueprint transition-colors">
+              GitHub
+            </a>
+          </div>
         </div>
 
         <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-6 pt-20 pb-10">
