@@ -17,12 +17,23 @@ export type RateLimitInfo = {
 }
 
 export type UserSettings = {
+  uid?: string
   cloudflareToken?: string
   accountId?: string
   subdomain?: string
   deployments: DeploymentRecord[]
   deployRate?: RateLimitInfo
   parseRate?: RateLimitInfo
+}
+
+export function hashId(id: string): string {
+  let hash = 0
+  for (let i = 0; i < id.length; i++) {
+    const char = id.charCodeAt(i)
+    hash = ((hash << 5) - hash) + char
+    hash = hash & hash
+  }
+  return Math.abs(hash).toString(36)
 }
 
 export async function readSettings(): Promise<UserSettings> {
@@ -34,6 +45,14 @@ export async function readSettings(): Promise<UserSettings> {
   } catch {
     return { deployments: [] }
   }
+}
+
+export async function readOwnSettings(userId: string): Promise<UserSettings> {
+  const settings = await readSettings()
+  if (settings.uid && settings.uid !== hashId(userId)) {
+    return { deployments: [] }
+  }
+  return settings
 }
 
 export async function writeSettings(settings: UserSettings): Promise<void> {
@@ -48,8 +67,9 @@ export async function writeSettings(settings: UserSettings): Promise<void> {
   })
 }
 
-export async function addDeployment(record: DeploymentRecord): Promise<void> {
-  const settings = await readSettings()
+export async function addDeployment(record: DeploymentRecord, userId?: string): Promise<void> {
+  const settings = userId ? await readOwnSettings(userId) : await readSettings()
+  if (userId && !settings.uid) settings.uid = hashId(userId)
   settings.deployments = [record, ...settings.deployments].slice(0, 50)
   await writeSettings(settings)
 }

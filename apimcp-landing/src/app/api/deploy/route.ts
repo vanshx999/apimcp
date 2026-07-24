@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { load as parseYaml } from 'js-yaml'
 import { auth } from '@/auth'
-import { readSettings, addDeployment } from '@/lib/cookie-store'
+import { readOwnSettings, addDeployment } from '@/lib/cookie-store'
 import { checkDeployRateLimit } from '@/lib/rate-limit'
 
 function resolveRef(ref: string, spec: any): any {
@@ -277,17 +277,15 @@ export async function POST(request: Request) {
     const safeName = (name || parsed.name || 'api').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'api-server'
     const workerCode = generateWorkerCode(parsed, specUrl)
 
-    const userSettings = await readSettings()
-    const cfToken = userSettings.cloudflareToken || process.env.CF_API_TOKEN
-    const accountId = userSettings.accountId || process.env.CF_ACCOUNT_ID
-    const cfSubdomain = userSettings.subdomain || process.env.CF_SUBDOMAIN || 'vanshmehndiratta13'
+    const userSettings = await readOwnSettings(session.user?.email || session.user?.id || '')
+    const cfToken = userSettings.cloudflareToken
+    const accountId = userSettings.accountId
+    const cfSubdomain = userSettings.subdomain || 'vanshmehndiratta13'
 
     if (!cfToken || !accountId) {
-      const deployUrl = 'https://' + safeName + '.' + cfSubdomain + '.workers.dev'
       return NextResponse.json({
-        url: deployUrl,
-        note: 'Dry run — deploy the CLI version for a live URL: apimcp deploy <spec>',
-      })
+        error: 'Connect your Cloudflare account first. Go to Dashboard → Cloudflare Connection.',
+      }, { status: 400 })
     }
 
     const subdomain = safeName + '-' + Date.now().toString(36)
@@ -339,7 +337,7 @@ export async function POST(request: Request) {
       specUrl: specUrl || '',
       createdAt: new Date().toISOString(),
       toolsCount: parsed.endpoints.length,
-    })
+    }, session.user?.email || session.user?.id || '')
 
     return NextResponse.json({ url: deployUrl })
   } catch (e: any) {

@@ -1,13 +1,13 @@
 import { auth } from "@/auth"
 import { redirect } from "next/navigation"
-import { readSettings } from "@/lib/cookie-store"
+import { readOwnSettings } from "@/lib/cookie-store"
 import DashboardClient from "./DashboardClient"
 
 export default async function DashboardPage() {
   const session = await auth()
   if (!session?.user) redirect("/login")
 
-  const settings = await readSettings()
+  const settings = await readOwnSettings(session.user?.email || session.user?.id || '')
   let cfWorkers: { name: string; url: string; modified_on: string }[] = []
 
   if (settings.cloudflareToken && settings.accountId) {

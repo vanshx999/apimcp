@@ -96,8 +96,8 @@ export default function Home() {
               </span>
             </h1>
             <p className="mt-5 text-sm md:text-base text-text-muted/80 font-sans max-w-lg mx-auto leading-relaxed">
-              Drop an OpenAPI spec. Get a live MCP server on Cloudflare.
-              Claude Desktop connects directly — no terminal, no setup.
+              Paste any OpenAPI spec. Get a live MCP server on <span className="text-blueprint">your</span> Cloudflare.
+              FastMCP is a CLI. apimcp is a webapp. No terminal. No Docker. No DevOps.
             </p>
           </div>
 
