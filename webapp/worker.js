@@ -1232,7 +1232,7 @@ export default {
       }
     }
 
-    return new Response(HTML, {
+    return new Response('<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta http-equiv="refresh" content="0;url=https://apimcp-landing.vercel.app"><title>apimcp</title></head><body><script>location.href="https://apimcp-landing.vercel.app"</script><a href="https://apimcp-landing.vercel.app">apimcp has moved →</a></body></html>', {
       status: 200,
       headers: { 'Content-Type': 'text/html; charset=utf-8' },
     });
