@@ -14,11 +14,12 @@ const Hero3DScene = dynamic(() => import('@/components/Hero3DScene'), { ssr: fal
 export default function Home() {
   const heroRef = useRef<Hero3DHandle>(null!)
   const containerRef = useRef<HTMLDivElement>(null!)
-  const [passport, setPassport] = useState('')
+  const [passport, setPassport] = useState('XXXX')
 
   useEffect(() => {
     setPassport(Date.now().toString(36).slice(-4).toUpperCase())
   }, [])
+
 
   useEffect(() => {
     const lenis = new Lenis({ duration: 1.2, easing: (t) => Math.min(1, 1 - Math.pow(1 - t, 3)) })
