@@ -3,6 +3,7 @@ import { load as parseYaml } from 'js-yaml'
 import { auth } from '@/auth'
 import { readOwnSettings, addDeployment } from '@/lib/cookie-store'
 import { checkDeployRateLimit } from '@/lib/rate-limit'
+import { curateEndpoints } from '@/lib/curate-tools'
 
 function resolveRef(ref: string, spec: any): any {
   const parts = ref.replace(/^#\//, '').split('/')
@@ -100,6 +101,7 @@ function parseOpenAPISimple(specData: any) {
         summary: (details as any).summary || '',
         description: (details as any).description || '',
         hasBody: !!body,
+        tags: (details as any).tags || [],
         parameters: params.map((p: any) => ({
           name: p.name,
           in: p.in || 'query',
@@ -274,8 +276,9 @@ export async function POST(request: Request) {
     }
 
     const parsed = parseOpenAPISimple(specData)
+    const groups = curateEndpoints(parsed.endpoints)
     const safeName = (name || parsed.name || 'api').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'api-server'
-    const workerCode = generateWorkerCode(parsed, specUrl)
+    const workerCode = generateWorkerCode({ ...parsed, groups, endpoints: groups.flatMap(g => g.endpoints) }, specUrl)
 
     const userSettings = await readOwnSettings(session.user?.email || session.user?.id || '')
     const cfToken = userSettings.cloudflareToken
@@ -331,15 +334,21 @@ export async function POST(request: Request) {
 
     const deployUrl = 'https://' + subdomain + '.' + cfSubdomain + '.workers.dev'
 
+    const totalTools = groups.reduce((s, g) => s + g.endpoints.length, 0)
     await addDeployment({
       name: safeName,
       url: deployUrl,
       specUrl: specUrl || '',
       createdAt: new Date().toISOString(),
-      toolsCount: parsed.endpoints.length,
+      toolsCount: totalTools,
+      groupCount: groups.length,
     }, session.user?.email || session.user?.id || '')
 
-    return NextResponse.json({ url: deployUrl })
+    return NextResponse.json({
+      url: deployUrl,
+      toolsCount: totalTools,
+      groups: groups.map(g => ({ name: g.name, count: g.endpoints.length })),
+    })
   } catch (e: any) {
     return NextResponse.json({ error: e.message || 'Deploy failed' }, { status: 500 })
   }

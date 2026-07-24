@@ -5,11 +5,18 @@ import { useSession, signIn } from 'next-auth/react'
 import { track } from '@vercel/analytics'
 import Link from 'next/link'
 
+type CuratedEndpoint = {
+  method: string; path: string; toolName: string; summary: string; parameters: any[]; group: string
+}
+type CuratedGroup = {
+  name: string; description: string; endpoints: CuratedEndpoint[]
+}
 type ParseResult = {
   name: string
   version: string
   serverUrl: string
-  endpoints: { method: string; path: string; toolName: string; summary: string; parameters: any[] }[]
+  endpoints: CuratedEndpoint[]
+  groups: CuratedGroup[]
 }
 
 export default function StampButton({ onStamp, prefillUrl }: { onStamp?: () => void; prefillUrl?: string }) {
@@ -138,27 +145,37 @@ export default function StampButton({ onStamp, prefillUrl }: { onStamp?: () => v
           )}
         </div>
 
-        {result && state !== 'idle' && (
-          <div className="mt-4 p-3 border border-border-light/60 bg-black/[0.15] text-xs font-mono"
+        {result && state !== 'idle' && result.groups && (
+          <div className="mt-4 border border-border-light/60 bg-black/[0.15] text-xs font-mono"
             style={{ clipPath: 'polygon(6px 0, 100% 0, 100% 100%, 0 100%, 0 6px)' }}>
-            <div className="flex items-center gap-3 text-[10px] text-text-dim uppercase tracking-[0.15em] mb-2">
+            <div className="flex items-center gap-3 text-[10px] text-text-dim uppercase tracking-[0.15em] p-3 pb-0">
               <span className="text-blueprint font-semibold">{'>'}_ spec</span>
               <span className="flex-1 border-t border-dashed border-border-light/30" />
               <span className="text-text-dim/50">v{result.version}</span>
             </div>
-            <div className="grid grid-cols-2 gap-2 text-text-muted">
+            <div className="grid grid-cols-2 gap-x-4 gap-y-2 p-3 text-text-muted">
               <div>
                 <span className="text-text-dim/50">Name</span>
                 <div className="text-text truncate">{result.name}</div>
               </div>
               <div>
-                <span className="text-text-dim/50">Endpoints</span>
-                <div className="text-text">{result.endpoints.length} tools</div>
+                <span className="text-text-dim/50">Tools</span>
+                <div className="text-text">{result.endpoints.length} total</div>
               </div>
               <div className="col-span-2">
                 <span className="text-text-dim/50">Server</span>
                 <div className="text-text-dim/80 truncate">{result.serverUrl}</div>
               </div>
+            </div>
+            <div className="border-t border-border-light/30 px-3 py-2 space-y-1.5 max-h-28 overflow-y-auto">
+              {result.groups.map(g => (
+                <div key={g.name} className="flex items-center gap-2 text-[10px]">
+                  <span className="w-1.5 h-1.5 rounded-full bg-stamp/50 shrink-0" />
+                  <span className="text-text-dim/70 font-semibold">{g.name.replace(/_/g, ' ')}</span>
+                  <span className="text-text-dim/40">{g.endpoints.length} tools</span>
+                  <span className="hidden md:inline text-text-dim/30 truncate">{g.description}</span>
+                </div>
+              ))}
             </div>
           </div>
         )}
@@ -227,7 +244,7 @@ export default function StampButton({ onStamp, prefillUrl }: { onStamp?: () => v
           <div className="mt-4 p-3 border border-green-500/30 bg-green-500/[0.05]"
             style={{ clipPath: 'polygon(6px 0, 100% 0, 100% 100%, 0 100%, 0 6px)' }}>
             <div className="text-[10px] text-green-400/60 uppercase tracking-[0.15em] font-semibold mb-1.5">● Deployed</div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 mb-2">
               <input
                 readOnly
                 value={deployUrl}
@@ -241,8 +258,33 @@ export default function StampButton({ onStamp, prefillUrl }: { onStamp?: () => v
                 {copied ? 'Copied' : 'Copy'}
               </button>
             </div>
-            <div className="mt-2 text-[10px] text-text-dim/50 text-center">
-              Connect in Claude Desktop: Settings → Connectors → Add URL
+            <div className="flex items-center gap-2 mb-2">
+              <button
+                onClick={() => {
+                  const config = JSON.stringify({
+                    name: (result?.name || 'apimcp-server').toLowerCase().replace(/\s+/g, '-'),
+                    transport: 'streamable-http',
+                    url: deployUrl,
+                  }, null, 2)
+                  navigator.clipboard.writeText(config)
+                  setCopied(true)
+                  setTimeout(() => setCopied(false), 2000)
+                }}
+                className="flex-1 px-3 py-2 text-[10px] font-mono font-semibold uppercase tracking-wider bg-blueprint/70 text-paper hover:bg-blueprint text-center transition-colors"
+                style={{ clipPath: 'polygon(4px 0, 100% 0, 100% 100%, 0 100%, 0 4px)' }}>
+                Copy Claude Config
+              </button>
+              <a
+                href={`https://www.anthropic.com/claude-connect`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-1 px-3 py-2 text-[10px] font-mono font-semibold uppercase tracking-wider bg-stamp text-paper hover:bg-stamp/80 text-center transition-colors"
+                style={{ clipPath: 'polygon(4px 0, 100% 0, 100% 100%, 0 100%, 0 4px)' }}>
+                How to Connect &rarr;
+              </a>
+            </div>
+            <div className="text-[10px] text-text-dim/40 text-center">
+              Or manually paste this URL in your AI client's MCP settings
             </div>
           </div>
         )}

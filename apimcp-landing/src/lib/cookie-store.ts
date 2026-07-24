@@ -9,6 +9,7 @@ export type DeploymentRecord = {
   specUrl: string
   createdAt: string
   toolsCount: number
+  groupCount?: number
 }
 
 export type RateLimitInfo = {

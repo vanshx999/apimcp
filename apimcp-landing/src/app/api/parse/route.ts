@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { load as parseYaml } from 'js-yaml'
 import { checkParseRateLimit } from '@/lib/rate-limit'
+import { curateEndpoints } from '@/lib/curate-tools'
 
 function resolveRef(ref: string, spec: any): any {
   const parts = ref.replace(/^#\//, '').split('/')
@@ -98,6 +99,7 @@ function parseOpenAPISimple(specData: any) {
         summary: (details as any).summary || '',
         description: (details as any).description || '',
         hasBody: !!body,
+        tags: (details as any).tags || [],
         parameters: params.map((p: any) => ({
           name: p.name,
           in: p.in || 'query',
@@ -156,7 +158,8 @@ export async function POST(request: Request) {
     }
 
     const parsed = parseOpenAPISimple(specData)
-    return NextResponse.json(parsed)
+    const groups = curateEndpoints(parsed.endpoints)
+    return NextResponse.json({ ...parsed, groups })
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: 500 })
   }
