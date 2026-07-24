@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { load as parseYaml } from 'js-yaml'
 import { auth } from '@/auth'
 import { readSettings, addDeployment } from '@/lib/cookie-store'
+import { checkDeployRateLimit } from '@/lib/rate-limit'
 
 function resolveRef(ref: string, spec: any): any {
   const parts = ref.replace(/^#\//, '').split('/')
@@ -234,6 +235,18 @@ export async function POST(request: Request) {
   const session = await auth()
   if (!session?.user) {
     return NextResponse.json({ error: 'Authentication required. Sign in at /login' }, { status: 401 })
+  }
+  const rate = await checkDeployRateLimit()
+  if (!rate.allowed) {
+    return NextResponse.json({
+      error: `Rate limit exceeded. Try again in ${Math.ceil(rate.resetIn / 60000)} minutes.`,
+    }, {
+      status: 429,
+      headers: {
+        'X-RateLimit-Remaining': '0',
+        'X-RateLimit-Reset': String(Math.ceil(rate.resetIn / 1000)),
+      },
+    })
   }
   try {
     const { url: specUrl, name } = await request.json()

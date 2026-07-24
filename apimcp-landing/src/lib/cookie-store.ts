@@ -11,11 +11,18 @@ export type DeploymentRecord = {
   toolsCount: number
 }
 
+export type RateLimitInfo = {
+  count: number
+  windowStart: number
+}
+
 export type UserSettings = {
   cloudflareToken?: string
   accountId?: string
   subdomain?: string
   deployments: DeploymentRecord[]
+  deployRate?: RateLimitInfo
+  parseRate?: RateLimitInfo
 }
 
 export async function readSettings(): Promise<UserSettings> {

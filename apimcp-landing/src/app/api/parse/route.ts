@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { load as parseYaml } from 'js-yaml'
+import { checkParseRateLimit } from '@/lib/rate-limit'
 
 function resolveRef(ref: string, spec: any): any {
   const parts = ref.replace(/^#\//, '').split('/')
@@ -117,6 +118,18 @@ function parseOpenAPISimple(specData: any) {
 }
 
 export async function POST(request: Request) {
+  const rate = await checkParseRateLimit()
+  if (!rate.allowed) {
+    return NextResponse.json({
+      error: `Rate limit exceeded. Try again in ${Math.ceil(rate.resetIn / 60000)} minutes.`,
+    }, {
+      status: 429,
+      headers: {
+        'X-RateLimit-Remaining': '0',
+        'X-RateLimit-Reset': String(Math.ceil(rate.resetIn / 1000)),
+      },
+    })
+  }
   try {
     const { url } = await request.json()
     if (!url) {
