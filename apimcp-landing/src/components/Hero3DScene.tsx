@@ -281,7 +281,7 @@ function GridFloor() {
 
 function FloatingParticles() {
   const ref = useRef<THREE.Points>(null!)
-  const count = 60
+  const count = 30
   const positions = useMemo(() => {
     const pos = new Float32Array(count * 3)
     for (let i = 0; i < count; i++) {
@@ -344,7 +344,7 @@ function SceneContent({ phase }: { phase: number }) {
       <StampPress phase={phase} />
       <NodeGraph phase={phase} />
       <Shockwave active={phase === 1} />
-      <Sparkles count={50} scale={4} size={2} speed={0.4} opacity={0.25} color="#FF8C55" />
+      <Sparkles count={15} scale={3} size={1.5} speed={0.3} opacity={0.15} color="#FF8C55" />
     </group>
   )
 }
@@ -372,7 +372,7 @@ export default forwardRef<Hero3DHandle, {}>(function Hero3DScene(_, ref) {
 
   return (
     <div className="w-full h-full">
-      <Canvas camera={{ position: [0, 0.3, 3.5], fov: 42 }} dpr={[1, 1.5]} gl={{ antialias: true, alpha: true }}>
+      <Canvas camera={{ position: [0, 0.3, 3.5], fov: 42 }} dpr={[1, 1.2]} gl={{ antialias: true, alpha: true, powerPreference: "low-power" }}>
         <SceneLights />
         <SceneContent phase={phase} />
       </Canvas>

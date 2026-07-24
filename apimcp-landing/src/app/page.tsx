@@ -4,7 +4,6 @@ import { useRef, useEffect, useState } from 'react'
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import { useSession, signIn, signOut } from 'next-auth/react'
-import Lenis from '@studio-freight/lenis'
 import StampButton from '@/components/StampButton'
 import ManifestSteps from '@/components/ManifestSteps'
 import ConfigStrip from '@/components/ConfigStrip'
@@ -17,7 +16,7 @@ export default function Home() {
   const { data: session } = useSession()
   const [prefillUrl, setPrefillUrl] = useState('')
   const heroRef = useRef<Hero3DHandle>(null!)
-  const containerRef = useRef<HTMLDivElement>(null!)
+  const glowRef = useRef<HTMLDivElement>(null!)
   const [passport, setPassport] = useState('XXXX')
 
   useEffect(() => {
@@ -28,18 +27,36 @@ export default function Home() {
   }, [])
 
   useEffect(() => {
-    const lenis = new Lenis({ duration: 1.2, easing: (t) => Math.min(1, 1 - Math.pow(1 - t, 3)) })
+    const glow = glowRef.current
+    if (!glow) return
     let rafId: number
+    let mouseX = -400
+    let mouseY = -400
+    let currentX = -400
+    let currentY = -400
 
-    function raf(time: number) {
-      lenis.raf(time)
-      rafId = requestAnimationFrame(raf)
+    const onMouse = (e: MouseEvent) => {
+      mouseX = e.clientX
+      mouseY = e.clientY
+      glow.classList.add('visible')
     }
-    rafId = requestAnimationFrame(raf)
+    const onLeave = () => glow.classList.remove('visible')
+
+    const animate = () => {
+      currentX += (mouseX - currentX) * 0.08
+      currentY += (mouseY - currentY) * 0.08
+      glow.style.left = currentX + 'px'
+      glow.style.top = currentY + 'px'
+      rafId = requestAnimationFrame(animate)
+    }
+    window.addEventListener('mousemove', onMouse, { passive: true })
+    document.addEventListener('mouseleave', onLeave)
+    rafId = requestAnimationFrame(animate)
 
     return () => {
+      window.removeEventListener('mousemove', onMouse)
+      document.removeEventListener('mouseleave', onLeave)
       cancelAnimationFrame(rafId)
-      lenis.destroy()
     }
   }, [])
 
@@ -48,7 +65,9 @@ export default function Home() {
   }
 
   return (
-    <main ref={containerRef} className="min-h-screen bg-surface overflow-hidden">
+    <main className="min-h-screen bg-surface overflow-hidden">
+      <div ref={glowRef} className="cursor-glow" />
+
       <section className="relative min-h-screen flex flex-col">
         <div className="absolute top-0 left-0 right-0 z-20 p-6 flex items-start justify-between">
           <div className="font-mono text-xs text-text-dim tracking-[0.2em]">
@@ -86,47 +105,47 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-6 pt-20 pb-10">
-          <div className="max-w-3xl mx-auto text-center mb-6 md:mb-8">
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-mono font-bold text-text leading-[1.05] tracking-tight">
-              Turn any API into<br />
-              <span className="text-blueprint relative">
-                an AI agent
-                <span className="absolute -bottom-1 left-0 right-0 h-1 bg-stamp/40" />
+        <div className="relative z-10 flex-1 flex items-center px-6">
+          <div className="max-w-2xl mx-auto lg:mx-0 lg:mr-auto lg:pl-8 xl:pl-16 py-20">
+            <div className="mb-6 md:mb-8">
+              <h1 className="text-4xl md:text-6xl lg:text-7xl font-mono font-bold text-text leading-[1.05] tracking-tight">
+                Turn any API into<br />
+                <span className="text-blueprint relative">
+                  an AI agent
+                  <span className="absolute -bottom-1 left-0 right-0 h-1 bg-stamp/40" />
+                </span>
+              </h1>
+              <p className="mt-5 text-sm md:text-base text-text-muted/80 font-sans max-w-lg leading-relaxed">
+                Paste any OpenAPI spec. Get a live MCP server on <span className="text-blueprint">your</span> Cloudflare.
+                FastMCP is a CLI. apimcp is a webapp. No terminal. No Docker. No DevOps.
+              </p>
+            </div>
+
+            <div className="max-w-xl">
+              <StampButton onStamp={handleStamp} prefillUrl={prefillUrl} />
+            </div>
+
+            <div className="mt-6 flex items-center gap-6 text-xs font-mono text-text-dim">
+              <span className="flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                OpenAPI 2.0 / 3.0
               </span>
-            </h1>
-            <p className="mt-5 text-sm md:text-base text-text-muted/80 font-sans max-w-lg mx-auto leading-relaxed">
-              Paste any OpenAPI spec. Get a live MCP server on <span className="text-blueprint">your</span> Cloudflare.
-              FastMCP is a CLI. apimcp is a webapp. No terminal. No Docker. No DevOps.
-            </p>
+              <span className="w-px h-3 bg-border-light/50" />
+              <span className="flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-blueprint" />
+                Streamable HTTP
+              </span>
+              <span className="w-px h-3 bg-border-light/50" />
+              <span className="flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-stamp" />
+                Cloudflare Workers
+              </span>
+            </div>
           </div>
 
-          <div className="w-full max-w-xl mb-6">
-            <StampButton onStamp={handleStamp} prefillUrl={prefillUrl} />
+          <div className="hidden lg:block absolute right-0 top-0 bottom-0 w-[45%] z-0 opacity-60">
+            <Hero3DScene ref={heroRef} />
           </div>
-
-          <div className="h-4" />
-
-          <div className="flex items-center gap-6 text-xs font-mono text-text-dim">
-            <span className="flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
-              OpenAPI 2.0 / 3.0
-            </span>
-            <span className="w-px h-3 bg-border-light/50" />
-            <span className="flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-blueprint" />
-              Streamable HTTP
-            </span>
-            <span className="w-px h-3 bg-border-light/50" />
-            <span className="flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-stamp" />
-              Cloudflare Workers
-            </span>
-          </div>
-        </div>
-
-        <div className="absolute inset-0 top-0 z-0 opacity-80">
-          <Hero3DScene ref={heroRef} />
         </div>
 
         <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-surface to-transparent z-10" />

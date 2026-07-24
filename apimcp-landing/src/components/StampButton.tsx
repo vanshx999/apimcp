@@ -67,7 +67,7 @@ export default function StampButton({ onStamp, prefillUrl }: { onStamp?: () => v
     <div className="relative max-w-xl mx-auto">
       <div className={`
         relative border-2 border-border bg-surface-light p-6 md:p-8 font-mono text-sm
-        transition-all duration-300
+        transition-all duration-300 hover-glow
         ${shaking ? 'animate-[shake_0.5s_ease]' : ''}
         ${state === 'done' ? 'border-green-500/40' : ''}
       `}
