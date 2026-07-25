@@ -98,6 +98,16 @@ export default function Home() {
               </button>
             )}
             <span className="w-px h-3 bg-border-light/30" />
+            <Link href="/demo"
+              className="font-mono text-[10px] text-text-dim hover:text-blueprint transition-colors">
+              Demo
+            </Link>
+            <span className="w-px h-3 bg-border-light/30" />
+            <Link href="/curation-demo"
+              className="font-mono text-[10px] text-text-dim hover:text-blueprint transition-colors">
+              How It Works
+            </Link>
+            <span className="w-px h-3 bg-border-light/30" />
             <Link href="/apis"
               className="font-mono text-[10px] text-text-dim hover:text-blueprint transition-colors">
               Registry
