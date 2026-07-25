@@ -143,6 +143,22 @@ export default function StampButton({ onStamp, prefillUrl }: { onStamp?: () => v
               <span className="text-text-dim/70">{url.split('/').pop()?.substring(0, 20) || 'spec'}</span>
             </div>
           )}
+          {state === 'idle' && !url && (
+            <div className="mt-3 space-y-1.5">
+              <div className="text-[9px] text-text-dim/40 uppercase tracking-wider">Try one of these:</div>
+              <div className="flex flex-wrap gap-1.5">
+                {SUGGESTED_SPECS.map(s => (
+                  <button
+                    key={s.url}
+                    onClick={() => setUrl(s.url)}
+                    className="text-[9px] px-2 py-1 border border-border-light/40 text-text-dim/60 hover:text-blueprint hover:border-blueprint/40 transition-colors"
+                    style={{ clipPath: 'polygon(3px 0, 100% 0, 100% 100%, 0 100%, 0 3px)' }}>
+                    {s.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {result && state !== 'idle' && result.groups && (
@@ -317,6 +333,13 @@ export default function StampButton({ onStamp, prefillUrl }: { onStamp?: () => v
     </div>
   )
 }
+
+const SUGGESTED_SPECS = [
+  { label: 'Pet Store', url: 'https://petstore3.swagger.io/api/v3/openapi.json' },
+  { label: 'GitHub API', url: 'https://raw.githubusercontent.com/github/rest-api-description/main/descriptions/ghes-3.17/ghes-3.17.json' },
+  { label: 'Stripe', url: 'https://raw.githubusercontent.com/stripe/openapi/master/openapi/spec3.json' },
+  { label: 'OpenAI', url: 'https://raw.githubusercontent.com/openai/openai-openapi/master/openapi.yaml' },
+]
 
 function StampMark({ id }: { id: string }) {
   return (
