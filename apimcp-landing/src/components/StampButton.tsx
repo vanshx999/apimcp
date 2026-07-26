@@ -312,8 +312,11 @@ export default function StampButton({ onStamp, prefillUrl }: { onStamp?: () => v
               <div className="mt-2 p-2 bg-black/[0.2] border border-border-light/20 text-text-dim/60 leading-relaxed"
                 style={{ clipPath: 'polygon(4px 0, 100% 0, 100% 100%, 0 100%, 0 4px)' }}>
                 <div className="mb-1.5">1. Open Claude Desktop → Settings → Connectors</div>
-                <div className="mb-1.5">2. Click "Add Connector" and paste the URL above</div>
+                <div className="mb-1.5">2. Remove existing connector (hover → delete icon), then click "Add Connector" and paste the URL</div>
                 <div className="mb-1.5">3. That&apos;s it — start chatting with your API</div>
+                <div className="mt-2 pt-2 border-t border-border-light/20 text-text-dim/30">
+                  Note: Claude free plan limits to 1 connector. Test in Browser above to try it without Claude.
+                </div>
               </div>
             </details>
           </div>
