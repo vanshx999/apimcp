@@ -18,20 +18,24 @@ function resolveRef(ref: string, spec: any): any {
   return obj
 }
 
-function resolveSchema(schema: any, spec: any): any {
+function resolveSchema(schema: any, spec: any, seen?: Set<string>): any {
   if (!schema || typeof schema !== 'object') return schema
   if (schema.$ref) {
-    const resolved = resolveRef(schema.$ref, spec)
-    return resolved ? resolveSchema(resolved, spec) : schema
+    const refPath = schema.$ref
+    if (!seen) seen = new Set()
+    if (seen.has(refPath)) return { type: 'string', description: '(circular ref)' }
+    seen.add(refPath)
+    const resolved = resolveRef(refPath, spec)
+    return resolved ? resolveSchema(resolved, spec, seen) : schema
   }
-  if (schema.items) schema.items = resolveSchema(schema.items, spec)
+  if (schema.items) schema.items = resolveSchema(schema.items, spec, seen)
   if (schema.properties) {
     for (const key of Object.keys(schema.properties)) {
-      schema.properties[key] = resolveSchema(schema.properties[key], spec)
+      schema.properties[key] = resolveSchema(schema.properties[key], spec, seen)
     }
   }
   if (schema.allOf) {
-    schema.allOf = schema.allOf.map((s: any) => resolveSchema(s, spec))
+    schema.allOf = schema.allOf.map((s: any) => resolveSchema(s, spec, seen))
   }
   return schema
 }
