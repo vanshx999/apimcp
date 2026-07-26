@@ -77,7 +77,65 @@ export default function GuidePage() {
           </div>
         </div>
 
-        <div className="mt-16 p-6 border border-blueprint/20 bg-blueprint/[0.04] text-center"
+        <div className="mt-16 mb-8">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-8 h-px bg-stamp/40" />
+            <h2 className="text-xs font-semibold uppercase tracking-[0.2em] text-stamp/60">After Deploying</h2>
+            <div className="flex-1 h-px bg-border-light/40" />
+          </div>
+          <p className="text-sm text-text-muted/70 font-sans leading-relaxed mb-8 max-w-lg">
+            Your MCP server is live. Connect it to your AI client in 10 seconds.
+          </p>
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div className="border border-border-light bg-surface-light p-5"
+              style={{ clipPath: 'polygon(8px 0, 100% 0, 100% 100%, 0 100%, 0 8px)' }}>
+              <h3 className="font-mono text-sm font-bold text-text mb-3">Claude Desktop</h3>
+              <ol className="space-y-2 text-xs text-text-muted/70 font-sans leading-relaxed">
+                <li className="flex items-start gap-2">
+                  <span className="text-blueprint font-mono font-bold shrink-0">1.</span>
+                  <span>Open Claude Desktop → Settings → Connectors</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-blueprint font-mono font-bold shrink-0">2.</span>
+                  <span>Hover over existing connector → click delete icon to remove (free plan only allows 1)</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-blueprint font-mono font-bold shrink-0">3.</span>
+                  <span>Click <span className="text-stamp font-mono">&ldquo;Add Connector&rdquo;</span> and paste your deployed URL</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-blueprint font-mono font-bold shrink-0">4.</span>
+                  <span>Start chatting: <span className="text-text-dim/90 font-mono">&ldquo;List my repos&rdquo;</span></span>
+                </li>
+              </ol>
+            </div>
+            <div className="border border-border-light bg-surface-light p-5"
+              style={{ clipPath: 'polygon(8px 0, 100% 0, 100% 100%, 0 100%, 0 8px)' }}>
+              <h3 className="font-mono text-sm font-bold text-text mb-3">ChatGPT Desktop</h3>
+              <ol className="space-y-2 text-xs text-text-muted/70 font-sans leading-relaxed">
+                <li className="flex items-start gap-2">
+                  <span className="text-blueprint font-mono font-bold shrink-0">1.</span>
+                  <span>Open ChatGPT Desktop → Settings → MCP Servers</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-blueprint font-mono font-bold shrink-0">2.</span>
+                  <span>Click <span className="text-stamp font-mono">&ldquo;Add MCP Server&rdquo;</span> and paste your deployed URL</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-blueprint font-mono font-bold shrink-0">3.</span>
+                  <span>Start a new chat and ask naturally: <span className="text-text-dim/90 font-mono">&ldquo;List my Notion databases&rdquo;</span></span>
+                </li>
+              </ol>
+            </div>
+          </div>
+          <div className="mt-4 p-3 border border-blueprint/20 bg-blueprint/[0.04] text-[11px] text-text-muted/60 font-sans leading-relaxed"
+            style={{ clipPath: 'polygon(6px 0, 100% 0, 100% 100%, 0 100%, 0 6px)' }}>
+            Note: ChatGPT web does not support MCP — you need the desktop app. Claude free plan limits to 1 connector.
+            Use the <a href="/demo" className="text-blueprint underline">Test in Browser</a> tool to try your server without any desktop client.
+          </div>
+        </div>
+
+        <div className="mt-8 p-6 border border-blueprint/20 bg-blueprint/[0.04] text-center"
           style={{ clipPath: 'polygon(12px 0, 100% 0, 100% 100%, 0 100%, 0 12px)' }}>
           <p className="text-sm font-mono text-text-muted/80 mb-4">
             Got your credentials? Head to the dashboard.
