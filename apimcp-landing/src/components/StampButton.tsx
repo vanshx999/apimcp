@@ -22,6 +22,14 @@ type ParseResult = {
 export default function StampButton({ onStamp, prefillUrl }: { onStamp?: () => void; prefillUrl?: string }) {
   const { data: session } = useSession()
   const [url, setUrl] = useState(prefillUrl || '')
+
+  useEffect(() => {
+    if (!url) {
+      const params = new URLSearchParams(window.location.search)
+      const urlParam = params.get('url')
+      if (urlParam) setUrl(urlParam)
+    }
+  }, [])
   const [state, setState] = useState<'idle' | 'parsing' | 'deploying' | 'done' | 'error' | 'needs-cf'>('idle')
   const [showStamp, setShowStamp] = useState(false)
   const [result, setResult] = useState<ParseResult | null>(null)
