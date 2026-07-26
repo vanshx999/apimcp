@@ -311,12 +311,9 @@ export default function StampButton({ onStamp, prefillUrl }: { onStamp?: () => v
               </summary>
               <div className="mt-2 p-2 bg-black/[0.2] border border-border-light/20 text-text-dim/60 leading-relaxed"
                 style={{ clipPath: 'polygon(4px 0, 100% 0, 100% 100%, 0 100%, 0 4px)' }}>
-                <div className="mb-1.5">1. Open Claude Desktop → Settings → Developer → Edit Config</div>
-                <div className="mb-1.5">2. Paste the config JSON into <span className="text-text-dim/80">claude_desktop_config.json</span></div>
-                <div className="mb-1.5">3. Save the file and restart Claude Desktop</div>
-                <div className="text-text-dim/30">
-                  Or manually edit: <span className="text-text-dim/50">~/Library/Application Support/Claude/claude_desktop_config.json</span>
-                </div>
+                <div className="mb-1.5">1. Open Claude Desktop → Settings → Connectors</div>
+                <div className="mb-1.5">2. Click "Add Connector" and paste the URL above</div>
+                <div className="mb-1.5">3. That&apos;s it — start chatting with your API</div>
               </div>
             </details>
           </div>
