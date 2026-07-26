@@ -286,15 +286,18 @@ export default function StampButton({ onStamp, prefillUrl }: { onStamp?: () => v
               <button
                 onClick={() => {
                   const name = (result?.name || 'apimcp-server').toLowerCase().replace(/\s+/g, '-')
-                  const entry = `"${name}": { "transport": "streamable-http", "url": "${deployUrl}" }`
+                  const entry = JSON.stringify({
+                    command: 'npx',
+                    args: ['-y', 'mcp-remote', deployUrl, '--transport', 'http-only'],
+                  }, null, 2)
                   navigator.clipboard.writeText(entry)
                   setCopied(true)
                   setTimeout(() => setCopied(false), 2000)
                 }}
-                title="Copies just the one line to add inside mcpServers"
+                title="Copies mcp-remote config for claude_desktop_config.json"
                 className="flex-1 px-3 py-2 text-[10px] font-mono font-semibold uppercase tracking-wider bg-blueprint/70 text-paper hover:bg-blueprint text-center transition-colors"
                 style={{ clipPath: 'polygon(4px 0, 100% 0, 100% 100%, 0 100%, 0 4px)' }}>
-                Copy Config Line
+                Copy mcp-remote Config
               </button>
               <a
                 href={'/demo?server=' + encodeURIComponent(deployUrl)}
@@ -309,13 +312,13 @@ export default function StampButton({ onStamp, prefillUrl }: { onStamp?: () => v
               </summary>
               <div className="mt-2 p-2 bg-black/[0.2] border border-border-light/20 text-text-dim/60 leading-relaxed"
                 style={{ clipPath: 'polygon(4px 0, 100% 0, 100% 100%, 0 100%, 0 4px)' }}>
-                <div className="mb-1.5 font-semibold text-text-dim/80">Option 1 — Connectors UI (1-connector limit on free plan):</div>
-                <div className="mb-1.5 pl-3">Settings → Connectors → Remove existing → Add Connector → paste URL</div>
-                <div className="mb-1.5 font-semibold text-text-dim/80 mt-2">Option 2 — Config file (no limit):</div>
+                <div className="mb-1.5 font-semibold text-text-dim/80">Option 1 — Connectors UI (recommended):</div>
+                <div className="mb-1.5 pl-3">Settings → Connectors → Add Connector → paste the URL</div>
+                <div className="text-text-dim/40 pl-3 mb-1.5">Free plan: 1 connector slot. Works with any URL-based MCP server.</div>
+                <div className="mb-1.5 font-semibold text-text-dim/80 mt-2">Option 2 — Config file (unlimited):</div>
                 <div className="pl-3 space-y-1 text-text-dim/70">
-                  <div>Open <span className="font-mono text-text-dim/80">~/Library/Application Support/Claude/claude_desktop_config.json</span></div>
-                  <div>Find <span className="font-mono text-text-dim/80">"mcpServers"</span> add a comma after the last entry inside, paste the copied line.</div>
-                  <div className="text-text-dim/40 mt-1">Free plan limits the UI to 1 connector. Config file works with unlimited servers.</div>
+                  <div>Paste the copied block as a new entry inside <span className="font-mono text-text-dim/80">"mcpServers"</span> in <span className="font-mono text-text-dim/80">claude_desktop_config.json</span></div>
+                  <div>This uses <span className="font-mono text-text-dim/80">mcp-remote</span> as a stdio bridge — works with unlimited servers.</div>
                 </div>
               </div>
             </details>
