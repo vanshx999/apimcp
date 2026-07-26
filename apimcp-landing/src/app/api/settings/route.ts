@@ -16,6 +16,7 @@ export async function GET() {
     configured: !!(settings.cloudflareToken && settings.accountId),
     accountId: settings.accountId || '',
     subdomain: settings.subdomain || '',
+    deployments: settings.deployments || [],
   })
 }
 
