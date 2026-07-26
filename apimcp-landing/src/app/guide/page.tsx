@@ -93,18 +93,18 @@ export default function GuidePage() {
               <ol className="space-y-2 text-xs text-text-muted/70 font-sans leading-relaxed">
                 <li className="flex items-start gap-2">
                   <span className="text-blueprint font-mono font-bold shrink-0">1.</span>
-                  <span>Open Claude Desktop → Settings → Connectors → Add Connector, paste URL</span>
+                  <span>Settings → Connectors → Add Connector, paste URL <span className="text-text-dim/40">(free plan = 1 slot)</span></span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-blueprint font-mono font-bold shrink-0">2.</span>
-                  <span><span className="text-stamp font-mono">Or</span> add to <span className="font-mono text-text-dim/90">claude_desktop_config.json</span>:
+                  <span>Or add to <span className="font-mono text-text-dim/90">claude_desktop_config.json</span> (no limit):
                     <code className="block mt-1 p-1.5 bg-black/30 text-[10px] font-mono break-all">~/Library/Application Support/Claude/claude_desktop_config.json</code>
                     <span className="block mt-1">Find <span className="font-mono text-text-dim/90">"mcpServers"</span>, add a comma after the last entry, paste the copied line inside.</span>
                   </span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-blueprint font-mono font-bold shrink-0">3.</span>
-                  <span>Start chatting: <span className="text-text-dim/90 font-mono">&ldquo;List my repos&rdquo;</span></span>
+                  <span>Restart Claude and ask: <span className="text-text-dim/90 font-mono">&ldquo;List my repos&rdquo;</span></span>
                 </li>
               </ol>
             </div>
@@ -129,7 +129,7 @@ export default function GuidePage() {
           </div>
           <div className="mt-4 p-3 border border-blueprint/20 bg-blueprint/[0.04] text-[11px] text-text-muted/60 font-sans leading-relaxed"
             style={{ clipPath: 'polygon(6px 0, 100% 0, 100% 100%, 0 100%, 0 6px)' }}>
-            Note: ChatGPT web does not support MCP — you need the desktop app. Claude free plan limits to 1 connector.
+            Note: The free plan Connectors UI limits to 1 connection. The config file has no limit — you can run unlimited MCP servers regardless of plan.
             Use the <a href="/demo" className="text-blueprint underline">Test in Browser</a> tool to try your server without any desktop client.
           </div>
         </div>

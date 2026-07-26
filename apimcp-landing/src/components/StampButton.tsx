@@ -294,7 +294,7 @@ export default function StampButton({ onStamp, prefillUrl }: { onStamp?: () => v
                 title="Copies just the one line to add inside mcpServers"
                 className="flex-1 px-3 py-2 text-[10px] font-mono font-semibold uppercase tracking-wider bg-blueprint/70 text-paper hover:bg-blueprint text-center transition-colors"
                 style={{ clipPath: 'polygon(4px 0, 100% 0, 100% 100%, 0 100%, 0 4px)' }}>
-                Copy Claude Config
+                Copy Config Line
               </button>
               <a
                 href={'/demo?server=' + encodeURIComponent(deployUrl)}
@@ -309,12 +309,13 @@ export default function StampButton({ onStamp, prefillUrl }: { onStamp?: () => v
               </summary>
               <div className="mt-2 p-2 bg-black/[0.2] border border-border-light/20 text-text-dim/60 leading-relaxed"
                 style={{ clipPath: 'polygon(4px 0, 100% 0, 100% 100%, 0 100%, 0 4px)' }}>
-                <div className="mb-1.5 font-semibold text-text-dim/80">Method 1 — Connectors UI (new):</div>
-                <div className="mb-1.5 pl-3">Settings → Connectors → Add Connector → paste the URL</div>
-                <div className="mb-1.5 font-semibold text-text-dim/80 mt-2">Method 2 — Config file (<span className="font-mono">claude_desktop_config.json</span>):</div>
-                <div className="pl-3 space-y-1">
-                  <div>1. Open the file at <span className="font-mono text-text-dim/80">~/Library/Application Support/Claude/claude_desktop_config.json</span></div>
-                  <div>2. Find the <span className="font-mono text-text-dim/80">"mcpServers"</span> block. Add a comma after the last entry inside it, then paste the copied line on a new line.</div>
+                <div className="mb-1.5 font-semibold text-text-dim/80">Option 1 — Connectors UI (1-connector limit on free plan):</div>
+                <div className="mb-1.5 pl-3">Settings → Connectors → Remove existing → Add Connector → paste URL</div>
+                <div className="mb-1.5 font-semibold text-text-dim/80 mt-2">Option 2 — Config file (no limit):</div>
+                <div className="pl-3 space-y-1 text-text-dim/70">
+                  <div>Open <span className="font-mono text-text-dim/80">~/Library/Application Support/Claude/claude_desktop_config.json</span></div>
+                  <div>Find <span className="font-mono text-text-dim/80">"mcpServers"</span> add a comma after the last entry inside, paste the copied line.</div>
+                  <div className="text-text-dim/40 mt-1">Free plan limits the UI to 1 connector. Config file works with unlimited servers.</div>
                 </div>
               </div>
             </details>
