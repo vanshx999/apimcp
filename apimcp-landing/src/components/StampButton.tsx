@@ -286,19 +286,12 @@ export default function StampButton({ onStamp, prefillUrl }: { onStamp?: () => v
               <button
                 onClick={() => {
                   const name = (result?.name || 'apimcp-server').toLowerCase().replace(/\s+/g, '-')
-                  const config = JSON.stringify({
-                    mcpServers: {
-                      [name]: {
-                        command: 'npx',
-                        args: ['-y', 'mcp-remote', deployUrl, '--transport', 'http-only'],
-                      },
-                    },
-                  }, null, 2)
-                  navigator.clipboard.writeText(config)
+                  const entry = `"${name}": { "command": "npx", "args": ["-y", "mcp-remote", "${deployUrl}", "--transport", "http-only"] }`
+                  navigator.clipboard.writeText(entry)
                   setCopied(true)
                   setTimeout(() => setCopied(false), 2000)
                 }}
-                title="Copies full mcpServers entry for claude_desktop_config.json"
+                title="Copies entry to paste inside mcpServers in claude_desktop_config.json"
                 className="flex-1 px-3 py-2 text-[10px] font-mono font-semibold uppercase tracking-wider bg-blueprint/70 text-paper hover:bg-blueprint text-center transition-colors"
                 style={{ clipPath: 'polygon(4px 0, 100% 0, 100% 100%, 0 100%, 0 4px)' }}>
                 Copy mcp-remote Config
@@ -321,8 +314,8 @@ export default function StampButton({ onStamp, prefillUrl }: { onStamp?: () => v
                 <div className="text-text-dim/40 pl-3 mb-1.5">Free plan: 1 connector slot. Works with any URL-based MCP server.</div>
                 <div className="mb-1.5 font-semibold text-text-dim/80 mt-2">Option 2 — Config file (unlimited):</div>
                 <div className="pl-3 space-y-1 text-text-dim/70">
-                  <div>Paste the copied block into <span className="font-mono text-text-dim/80">claude_desktop_config.json</span>. Merge the <span className="font-mono text-text-dim/80">"mcpServers"</span> entry with any existing ones.</div>
-                  <div>Uses <span className="font-mono text-text-dim/80">mcp-remote</span> as a stdio bridge — works with unlimited servers (requires Node.js).</div>
+                  <div>Open <span className="font-mono text-text-dim/80">claude_desktop_config.json</span>, find <span className="font-mono text-text-dim/80">"mcpServers"</span>, add a comma after the last entry inside, paste the copied line.</div>
+                  <div>Uses <span className="font-mono text-text-dim/80">mcp-remote</span> stdio bridge — unlimited servers, requires Node.js.</div>
                 </div>
               </div>
             </details>
