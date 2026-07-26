@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server'
-import { load as parseYaml } from 'js-yaml'
 import { auth } from '@/auth'
 import { readOwnSettings, addDeployment } from '@/lib/cookie-store'
 import { checkDeployRateLimit } from '@/lib/rate-limit'
 import { curateEndpoints } from '@/lib/curate-tools'
+import { tryParseSpec, jsonUrl } from '@/lib/parse-spec'
 
 function resolveRef(ref: string, spec: any): any {
   const parts = ref.replace(/^#\//, '').split('/')
@@ -268,15 +268,16 @@ export async function POST(request: Request) {
     }
 
     const text = await res.text()
-    let specData: any
-    try {
-      specData = JSON.parse(text)
-    } catch {
-      try {
-        specData = parseYaml(text)
-      } catch {
-        return NextResponse.json({ error: 'Invalid JSON or YAML' }, { status: 400 })
+    let specData = tryParseSpec(text)
+    if (!specData && specUrl.match(/\.ya?ml$/i)) {
+      const jsonRes = await fetch(jsonUrl(specUrl), { headers: { 'User-Agent': 'apimcp-parser/1.0' } })
+      if (jsonRes.ok) {
+        const jsonText = await jsonRes.text()
+        specData = tryParseSpec(jsonText)
       }
+    }
+    if (!specData) {
+      return NextResponse.json({ error: 'Invalid JSON or YAML' }, { status: 400 })
     }
 
     const parsed = parseOpenAPISimple(specData)
