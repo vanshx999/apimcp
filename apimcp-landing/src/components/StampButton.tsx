@@ -286,7 +286,7 @@ export default function StampButton({ onStamp, prefillUrl }: { onStamp?: () => v
               <button
                 onClick={() => {
                   const name = (result?.name || 'apimcp-server').toLowerCase().replace(/\s+/g, '-')
-                  const entry = `"${name}": { "url": "${deployUrl}" }`
+                  const entry = `"${name}": { "transport": "streamable-http", "url": "${deployUrl}" }`
                   navigator.clipboard.writeText(entry)
                   setCopied(true)
                   setTimeout(() => setCopied(false), 2000)
