@@ -34,9 +34,9 @@ export default function ConfigStrip() {
             <div className="inline-flex items-center gap-3 text-[10px] font-mono text-stamp uppercase tracking-[0.25em] mb-4 bg-stamp/[0.06] px-4 py-2"
               style={{ clipPath: 'polygon(6px 0, 100% 0, 100% 100%, 0 100%, 0 6px)' }}>
               <span className="w-1.5 h-1.5 rounded-full bg-stamp animate-pulse" />
-              Boarding Pass — MCP-2026
+              Claude Desktop Config
             </div>
-            <p className="text-xs font-mono text-ink/25 tracking-wider">Present this to Claude Desktop at the gate</p>
+            <p className="text-xs font-mono text-ink/25 tracking-wider">One line in claude_desktop_config.json</p>
           </div>
 
           <div className="relative bg-surface-light border-2 border-border overflow-hidden transition-all duration-500 hover:shadow-[8px_8px_0_rgba(0,0,0,0.2)]"
@@ -121,10 +121,11 @@ function CodeBlock() {
     { text: '{', delay: 0, dim: false },
     { text: '  "mcpServers": {', delay: 120, dim: false },
     { text: '    "my-api": {', delay: 240, dim: false },
-    { text: '      "url": "https://my-api.mcp.dev"', delay: 360, highlight: true, dim: false },
-    { text: '    }', delay: 480, dim: false },
-    { text: '  }', delay: 600, dim: false },
-    { text: '}', delay: 720, dim: false },
+    { text: '      "command": "apimcp",', delay: 360, highlight: true, dim: false },
+    { text: '      "args": ["connect", "https://my-api.mcp.dev"]', delay: 480, dim: false },
+    { text: '    }', delay: 600, dim: false },
+    { text: '  }', delay: 720, dim: false },
+    { text: '}', delay: 840, dim: false },
   ]
 
   return (

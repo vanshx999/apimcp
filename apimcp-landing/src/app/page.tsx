@@ -129,15 +129,16 @@ export default function Home() {
           <div className="max-w-2xl mx-auto lg:mx-0 lg:mr-auto lg:pl-8 xl:pl-16 py-20">
             <div className="mb-6 md:mb-8">
               <h1 className="text-4xl md:text-6xl lg:text-7xl font-mono font-bold text-text leading-[1.05] tracking-tight">
-                Turn any API into<br />
+                Make every API<br />
+                work with{' '}
                 <span className="text-blueprint relative">
-                  an AI agent
+                  AI agents
                   <span className="absolute -bottom-1 left-0 right-0 h-1 bg-stamp/40" />
                 </span>
               </h1>
               <p className="mt-5 text-sm md:text-base text-text-muted/80 font-sans max-w-lg leading-relaxed">
-                Paste any OpenAPI spec. Get a live MCP server on <span className="text-blueprint">your</span> Cloudflare.
-                FastMCP is a CLI. apimcp is a webapp. No terminal. No Docker. No DevOps.
+                Paste any OpenAPI spec. Get a live MCP server on Cloudflare Workers in 30 seconds.
+                No CLI, no Docker, no DevOps.
               </p>
             </div>
 
@@ -145,7 +146,7 @@ export default function Home() {
               <StampButton onStamp={handleStamp} prefillUrl={prefillUrl} />
             </div>
 
-            <div className="mt-6 flex items-center gap-6 text-xs font-mono text-text-dim">
+            <div className="mt-6 flex items-center gap-4 text-xs font-mono text-text-dim">
               <span className="flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
                 OpenAPI 2.0 / 3.0
@@ -158,7 +159,7 @@ export default function Home() {
               <span className="w-px h-3 bg-border-light/50" />
               <span className="flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-stamp" />
-                Cloudflare Workers
+                Deploys to Cloudflare
               </span>
             </div>
           </div>

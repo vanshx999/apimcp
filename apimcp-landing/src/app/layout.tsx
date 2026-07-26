@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
 import { Analytics } from "@vercel/analytics/react"
 import SessionProvider from "@/components/SessionProvider";
+import PostHogProvider from "@/components/PostHogProvider";
 import "./globals.css";
 
 const plexMono = IBM_Plex_Mono({
@@ -37,7 +38,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${plexMono.variable} ${plexSans.variable}`}>
       <body className="bg-surface text-text font-sans antialiased noise-overlay">
-        <SessionProvider>{children}<Analytics /></SessionProvider>
+        <SessionProvider>
+          <PostHogProvider>{children}<Analytics /></PostHogProvider>
+        </SessionProvider>
       </body>
     </html>
   );

@@ -5,25 +5,25 @@ import { useRef, useEffect, useState } from 'react'
 const steps = [
   {
     num: '01',
-    title: 'Spec In',
-    desc: 'Drop any OpenAPI 2.0/3.0 spec — JSON or YAML. apimcp parses every endpoint, parameter, schema, and security scheme into a structured tool manifest.',
-    detail: 'All 1,206 GitHub REST API endpoints parsed in &lt;2s.',
+    title: 'Paste a spec',
+    desc: 'Drop any OpenAPI 2.0/3.0 URL — JSON or YAML. apimcp parses every endpoint, schema, and security scheme. No uploads, no files.',
+    detail: '1,206 GitHub endpoints parsed in &lt;2s.',
     gradient: 'from-blueprint/20 to-transparent',
     accent: '#1F3FE0',
   },
   {
     num: '02',
-    title: 'Stamped for Travel',
-    desc: 'Each endpoint becomes a named MCP tool with auto-generated descriptions and typed JSON Schema inputs. No decorators. No boilerplate.',
-    detail: 'Zero config — your API contract is your server definition.',
+    title: 'Tools are generated',
+    desc: 'Every endpoint becomes an MCP tool with auto-generated names, descriptions, and typed inputs. Your API contract is your server definition — zero config.',
+    detail: 'Low-value endpoints filtered automatically.',
     gradient: 'from-stamp/20 to-transparent',
     accent: '#FF5A1F',
   },
   {
     num: '03',
-    title: 'Agent Out',
-    desc: 'Your MCP server goes live on Cloudflare Workers in seconds. Claude Desktop connects via Custom Connector — no terminal, no config files.',
-    detail: 'Full Streamable HTTP transport. Protocol 2025-11-25.',
+    title: 'Deploy & connect',
+    desc: 'Your server goes live on Cloudflare Workers in seconds. Connect Claude Desktop, Cursor, or any MCP client — paste the URL or add one line to your config.',
+    detail: 'Streamable HTTP. Protocol 2025-11-25.',
     gradient: 'from-blueprint/20 to-transparent',
     accent: '#1F3FE0',
   },
@@ -73,12 +73,12 @@ export default function ManifestSteps() {
           <div className="inline-flex items-center gap-3 text-[10px] font-mono text-blueprint uppercase tracking-[0.25em] mb-5 bg-blueprint/[0.06] px-4 py-2"
             style={{ clipPath: 'polygon(6px 0, 100% 0, 100% 100%, 0 100%, 0 6px)' }}>
             <span className="w-1.5 h-1.5 rounded-full bg-blueprint animate-pulse" />
-            The Manifest — Three Stamps
+            Paste. Generate. Deploy.
           </div>
           <h2 className="text-4xl md:text-6xl font-mono font-bold text-text leading-[1.05]">
-            From spec to<br />
+            Your API, ready for{' '}
             <span className="text-stamp relative">
-              agent-ready
+              AI
               <span className="absolute -bottom-2 left-0 right-0 h-0.5 bg-stamp/50" />
             </span>
           </h2>

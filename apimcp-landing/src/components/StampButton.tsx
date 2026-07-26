@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useSession, signIn } from 'next-auth/react'
 import { track } from '@vercel/analytics'
+import { track as phTrack } from '@/lib/track'
 import Link from 'next/link'
 
 type CuratedEndpoint = {
@@ -67,6 +68,7 @@ export default function StampButton({ onStamp, prefillUrl }: { onStamp?: () => v
     setState('parsing')
     setErrorMsg('')
     track('Parse Spec', { url: url.trim() })
+    phTrack('parse_spec', { url: url.trim() })
     try {
       const parseRes = await fetch('/api/parse', {
         method: 'POST',
@@ -78,6 +80,7 @@ export default function StampButton({ onStamp, prefillUrl }: { onStamp?: () => v
       setResult(parseData)
       setState('deploying')
       track('Deploy Worker', { url: url.trim(), endpoints: parseData.endpoints?.length || 0 })
+      phTrack('deploy_start', { url: url.trim(), endpoints: parseData.endpoints?.length || 0 })
       const deployRes = await fetch('/api/deploy', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -87,6 +90,7 @@ export default function StampButton({ onStamp, prefillUrl }: { onStamp?: () => v
       if (!deployRes.ok) throw new Error(deployData.error || 'Deploy failed')
       setDeployUrl(deployData.url)
       track('Deploy Complete', { url: deployData.url })
+      phTrack('deploy_complete', { url: deployData.url })
       setState('done')
       setShowStamp(true)
       onStamp?.()
