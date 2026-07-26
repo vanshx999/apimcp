@@ -105,7 +105,7 @@ export const PRESTAMPED_APIS: PrestampedAPI[] = [
     name: 'OpenAI API',
     description: 'Chat completions, embeddings, models, files, images, and assistants.',
     logo: '◆',
-    specUrl: 'https://raw.githubusercontent.com/openai/openai-openapi/master/openapi.yaml',
+    specUrl: 'https://raw.githubusercontent.com/openai/openai-openapi/master/openapi.json',
     category: 'AI',
     tools: '40+ tools across chat, embeddings, models',
     curated: true,
