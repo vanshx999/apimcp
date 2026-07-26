@@ -299,17 +299,26 @@ export default function StampButton({ onStamp, prefillUrl }: { onStamp?: () => v
                 Copy Claude Config
               </button>
               <a
-                href={`https://www.anthropic.com/claude-connect`}
-                target="_blank"
-                rel="noopener noreferrer"
+                href={'/demo?server=' + encodeURIComponent(deployUrl)}
                 className="flex-1 px-3 py-2 text-[10px] font-mono font-semibold uppercase tracking-wider bg-stamp text-paper hover:bg-stamp/80 text-center transition-colors"
                 style={{ clipPath: 'polygon(4px 0, 100% 0, 100% 100%, 0 100%, 0 4px)' }}>
-                How to Connect &rarr;
+                Test in Browser &rarr;
               </a>
             </div>
-            <div className="text-[10px] text-text-dim/40 text-center">
-              Or manually paste this URL in your AI client's MCP settings
-            </div>
+            <details className="group text-[10px]">
+              <summary className="cursor-pointer text-text-dim/40 hover:text-text-dim/60 transition-colors text-center list-none">
+                How to connect in Claude Desktop
+              </summary>
+              <div className="mt-2 p-2 bg-black/[0.2] border border-border-light/20 text-text-dim/60 leading-relaxed"
+                style={{ clipPath: 'polygon(4px 0, 100% 0, 100% 100%, 0 100%, 0 4px)' }}>
+                <div className="mb-1.5">1. Open Claude Desktop → Settings → Developer → Edit Config</div>
+                <div className="mb-1.5">2. Paste the config JSON into <span className="text-text-dim/80">claude_desktop_config.json</span></div>
+                <div className="mb-1.5">3. Save the file and restart Claude Desktop</div>
+                <div className="text-text-dim/30">
+                  Or manually edit: <span className="text-text-dim/50">~/Library/Application Support/Claude/claude_desktop_config.json</span>
+                </div>
+              </div>
+            </details>
           </div>
         )}
 
