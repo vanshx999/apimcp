@@ -97,9 +97,9 @@ export default function GuidePage() {
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-blueprint font-mono font-bold shrink-0">2.</span>
-                  <span>Or use config file with mcp-remote bridge (unlimited):
+                  <span>Or add to config file (unlimited):
                     <code className="block mt-1 p-1.5 bg-black/30 text-[10px] font-mono break-all">~/Library/Application Support/Claude/claude_desktop_config.json</code>
-                    <span className="block mt-1">Paste the copied block from the deploy page as a new entry inside <span className="font-mono text-text-dim/90">"mcpServers"</span>. Requires Node.js.</span>
+                    <span className="block mt-1">Add comma after last <span className="font-mono text-text-dim/90">"mcpServers"</span> entry, paste the copied line. Requires <span className="font-mono text-text-dim/90">npm i -g @vanshx999/apimcp</span>.</span>
                   </span>
                 </li>
                 <li className="flex items-start gap-2">
@@ -129,7 +129,7 @@ export default function GuidePage() {
           </div>
           <div className="mt-4 p-3 border border-blueprint/20 bg-blueprint/[0.04] text-[11px] text-text-muted/60 font-sans leading-relaxed"
             style={{ clipPath: 'polygon(6px 0, 100% 0, 100% 100%, 0 100%, 0 6px)' }}>
-            Note: Claude Desktop's config file only supports <span className="font-mono">command</span>-based (stdio) servers. For URL-based MCP servers, use the Connectors UI or the <span className="font-mono">mcp-remote</span> stdio bridge. Free plan limits the UI to 1 connector.
+            Note: Claude Desktop's config file only supports <span className="font-mono">command</span>-based servers. Use <span className="font-mono">apimcp connect</span> for URL-based MCP servers, or use the Connectors UI (free plan = 1 connector).
             Use the <a href="/demo" className="text-blueprint underline">Test in Browser</a> tool to try your server without any desktop client.
           </div>
         </div>
