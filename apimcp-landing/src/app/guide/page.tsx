@@ -97,8 +97,9 @@ export default function GuidePage() {
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-blueprint font-mono font-bold shrink-0">2.</span>
-                  <span><span className="text-stamp font-mono">Or</span> paste config into <span className="font-mono text-text-dim/90">claude_desktop_config.json</span>:
+                  <span><span className="text-stamp font-mono">Or</span> add to <span className="font-mono text-text-dim/90">claude_desktop_config.json</span>:
                     <code className="block mt-1 p-1.5 bg-black/30 text-[10px] font-mono break-all">~/Library/Application Support/Claude/claude_desktop_config.json</code>
+                    <span className="block mt-1">Find <span className="font-mono text-text-dim/90">"mcpServers"</span>, add a comma after the last entry, paste the copied line inside.</span>
                   </span>
                 </li>
                 <li className="flex items-start gap-2">

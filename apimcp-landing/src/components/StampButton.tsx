@@ -286,17 +286,12 @@ export default function StampButton({ onStamp, prefillUrl }: { onStamp?: () => v
               <button
                 onClick={() => {
                   const name = (result?.name || 'apimcp-server').toLowerCase().replace(/\s+/g, '-')
-                  const config = JSON.stringify({
-                    mcpServers: {
-                      [name]: {
-                        url: deployUrl,
-                      },
-                    },
-                  }, null, 2)
-                  navigator.clipboard.writeText(config)
+                  const entry = `"${name}": { "url": "${deployUrl}" }`
+                  navigator.clipboard.writeText(entry)
                   setCopied(true)
                   setTimeout(() => setCopied(false), 2000)
                 }}
+                title="Copies just the one line to add inside mcpServers"
                 className="flex-1 px-3 py-2 text-[10px] font-mono font-semibold uppercase tracking-wider bg-blueprint/70 text-paper hover:bg-blueprint text-center transition-colors"
                 style={{ clipPath: 'polygon(4px 0, 100% 0, 100% 100%, 0 100%, 0 4px)' }}>
                 Copy Claude Config
@@ -316,10 +311,10 @@ export default function StampButton({ onStamp, prefillUrl }: { onStamp?: () => v
                 style={{ clipPath: 'polygon(4px 0, 100% 0, 100% 100%, 0 100%, 0 4px)' }}>
                 <div className="mb-1.5 font-semibold text-text-dim/80">Method 1 — Connectors UI (new):</div>
                 <div className="mb-1.5 pl-3">Settings → Connectors → Add Connector → paste the URL</div>
-                <div className="mb-1.5 font-semibold text-text-dim/80 mt-2">Method 2 — Config file:</div>
-                <div className="mb-1.5 pl-3">Paste the copied JSON into <span className="font-mono text-text-dim/80">claude_desktop_config.json</span></div>
-                <div className="mt-2 pt-2 border-t border-border-light/20 text-text-dim/30">
-                  Mac: <span className="font-mono">~/Library/Application Support/Claude/claude_desktop_config.json</span>
+                <div className="mb-1.5 font-semibold text-text-dim/80 mt-2">Method 2 — Config file (<span className="font-mono">claude_desktop_config.json</span>):</div>
+                <div className="pl-3 space-y-1">
+                  <div>1. Open the file at <span className="font-mono text-text-dim/80">~/Library/Application Support/Claude/claude_desktop_config.json</span></div>
+                  <div>2. Find the <span className="font-mono text-text-dim/80">"mcpServers"</span> block. Add a comma after the last entry inside it, then paste the copied line on a new line.</div>
                 </div>
               </div>
             </details>
