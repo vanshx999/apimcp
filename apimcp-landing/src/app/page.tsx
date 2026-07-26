@@ -3,7 +3,7 @@
 import { useRef, useEffect, useState } from 'react'
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
-import { useSession, signIn, signOut } from 'next-auth/react'
+import { useSession, signOut } from 'next-auth/react'
 import StampButton from '@/components/StampButton'
 import ManifestSteps from '@/components/ManifestSteps'
 import ConfigStrip from '@/components/ConfigStrip'
@@ -92,7 +92,7 @@ export default function Home() {
                 </button>
               </div>
             ) : (
-              <button onClick={() => signIn('github')}
+              <button onClick={() => window.location.href = '/login'}
                 className="font-mono text-[10px] text-text-dim hover:text-blueprint transition-colors uppercase tracking-wider">
                 Sign In
               </button>
