@@ -285,10 +285,13 @@ export default function StampButton({ onStamp, prefillUrl }: { onStamp?: () => v
             <div className="flex items-center gap-2 mb-2">
               <button
                 onClick={() => {
+                  const name = (result?.name || 'apimcp-server').toLowerCase().replace(/\s+/g, '-')
                   const config = JSON.stringify({
-                    name: (result?.name || 'apimcp-server').toLowerCase().replace(/\s+/g, '-'),
-                    transport: 'streamable-http',
-                    url: deployUrl,
+                    mcpServers: {
+                      [name]: {
+                        url: deployUrl,
+                      },
+                    },
                   }, null, 2)
                   navigator.clipboard.writeText(config)
                   setCopied(true)
@@ -307,15 +310,16 @@ export default function StampButton({ onStamp, prefillUrl }: { onStamp?: () => v
             </div>
             <details className="group text-[10px]">
               <summary className="cursor-pointer text-text-dim/40 hover:text-text-dim/60 transition-colors text-center list-none">
-                How to connect in Claude Desktop
+                Claude Desktop setup
               </summary>
               <div className="mt-2 p-2 bg-black/[0.2] border border-border-light/20 text-text-dim/60 leading-relaxed"
                 style={{ clipPath: 'polygon(4px 0, 100% 0, 100% 100%, 0 100%, 0 4px)' }}>
-                <div className="mb-1.5">1. Open Claude Desktop → Settings → Connectors</div>
-                <div className="mb-1.5">2. Remove existing connector (hover → delete icon), then click "Add Connector" and paste the URL</div>
-                <div className="mb-1.5">3. That&apos;s it — start chatting with your API</div>
+                <div className="mb-1.5 font-semibold text-text-dim/80">Method 1 — Connectors UI (new):</div>
+                <div className="mb-1.5 pl-3">Settings → Connectors → Add Connector → paste the URL</div>
+                <div className="mb-1.5 font-semibold text-text-dim/80 mt-2">Method 2 — Config file:</div>
+                <div className="mb-1.5 pl-3">Paste the copied JSON into <span className="font-mono text-text-dim/80">claude_desktop_config.json</span></div>
                 <div className="mt-2 pt-2 border-t border-border-light/20 text-text-dim/30">
-                  Note: Claude free plan limits to 1 connector. Test in Browser above to try it without Claude.
+                  Mac: <span className="font-mono">~/Library/Application Support/Claude/claude_desktop_config.json</span>
                 </div>
               </div>
             </details>

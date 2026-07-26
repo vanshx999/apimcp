@@ -93,18 +93,16 @@ export default function GuidePage() {
               <ol className="space-y-2 text-xs text-text-muted/70 font-sans leading-relaxed">
                 <li className="flex items-start gap-2">
                   <span className="text-blueprint font-mono font-bold shrink-0">1.</span>
-                  <span>Open Claude Desktop → Settings → Connectors</span>
+                  <span>Open Claude Desktop → Settings → Connectors → Add Connector, paste URL</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-blueprint font-mono font-bold shrink-0">2.</span>
-                  <span>Hover over existing connector → click delete icon to remove (free plan only allows 1)</span>
+                  <span><span className="text-stamp font-mono">Or</span> paste config into <span className="font-mono text-text-dim/90">claude_desktop_config.json</span>:
+                    <code className="block mt-1 p-1.5 bg-black/30 text-[10px] font-mono break-all">~/Library/Application Support/Claude/claude_desktop_config.json</code>
+                  </span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-blueprint font-mono font-bold shrink-0">3.</span>
-                  <span>Click <span className="text-stamp font-mono">&ldquo;Add Connector&rdquo;</span> and paste your deployed URL</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-blueprint font-mono font-bold shrink-0">4.</span>
                   <span>Start chatting: <span className="text-text-dim/90 font-mono">&ldquo;List my repos&rdquo;</span></span>
                 </li>
               </ol>
