@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { checkDemoChatRateLimit } from '@/lib/rate-limit'
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY
 const GROQ_MODEL = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile'
@@ -35,6 +36,14 @@ async function callMCPTool(serverUrl: string, name: string, args: any): Promise<
 
 export async function POST(request: Request) {
   try {
+    const rate = await checkDemoChatRateLimit()
+    if (!rate.allowed) {
+      return NextResponse.json(
+        { error: `Daily demo limit reached. Try again in ${Math.ceil(rate.resetIn / 3600000)} hours.` },
+        { status: 429, headers: { 'X-RateLimit-Reset': String(Math.ceil(rate.resetIn / 1000)) } }
+      )
+    }
+
     const { message, serverUrl, history } = await request.json()
     if (!message || !serverUrl) {
       return NextResponse.json({ error: 'Missing message or serverUrl' }, { status: 400 })

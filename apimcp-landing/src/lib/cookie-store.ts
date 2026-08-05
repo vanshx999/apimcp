@@ -25,6 +25,7 @@ export type UserSettings = {
   deployments: DeploymentRecord[]
   deployRate?: RateLimitInfo
   parseRate?: RateLimitInfo
+  demoChatRate?: RateLimitInfo
 }
 
 export function hashId(id: string): string {
