@@ -1,0 +1,17 @@
+{
+  "name": "mcp-github-v3-rest-api",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "start": "node server.ts"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/server": "2.0.0-beta.4",
+    "zod": "^4.1.8"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.0",
+    "@types/node": "^22.0.0"
+  }
+}
