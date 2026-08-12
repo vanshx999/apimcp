@@ -8,6 +8,7 @@ import { discoverCommand } from './discover.js';
 import { deployCommand } from './deploy.js';
 import { connectCommand, listDaemons, stopDaemon } from './connect.js';
 import { runTUI } from './tui.js';
+import { swarmCommand } from './swarm.js';
 import { readFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
@@ -136,6 +137,20 @@ export function createCLI(): Command {
     .argument('<name>', 'Daemon name')
     .action((name) => {
       stopDaemon(name);
+    });
+
+  program
+    .command('swarm')
+    .description('Run full pipeline: parse → group → curate → codegen → test → synthesize')
+    .argument('<spec-url>', 'OpenAPI spec URL')
+    .option('--replay', 'Replay from cached stages')
+    .option('--provider <provider>', 'AI provider (groq)', 'groq')
+    .option('-o, --output <dir>', 'Output directory')
+    .option('-l, --lang <lang>', 'Output language (ts or py)', 'ts')
+    .action(async (specUrl, options) => {
+      try {
+        await swarmCommand(specUrl, options);
+      } catch (err) { handleError(err); }
     });
 
   return program;
