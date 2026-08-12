@@ -50,6 +50,7 @@ function createCache(): StageCache<unknown> {
       }
     },
     saveStage<T>(stage: string, data: T): void {
+      if (data === undefined || data === null) return;
       if (!existsSync(CACHE_DIR)) {
         mkdirSync(CACHE_DIR, { recursive: true });
       }
@@ -204,15 +205,14 @@ export async function runSwarm(
   return finalOutput;
 }
 
-async function validateGeneratedCode(files: Record<string, string>, lang: 'ts' | 'py'): Promise<void> {
-  if (lang === 'ts') {
-    if (!files['server.ts']) throw new Error('Missing server.ts');
-    if (!files['package.json']) throw new Error('Missing package.json');
-    if (!files['tsconfig.json']) throw new Error('Missing tsconfig.json');
-  } else {
-    if (!files['server.py']) throw new Error('Missing server.py');
-    if (!files['requirements.txt']) throw new Error('Missing requirements.txt');
+async function validateGeneratedCode(files: Record<string, string>, lang: 'ts' | 'py'): Promise<{ validated: boolean; files: string[] }> {
+  const required = lang === 'ts'
+    ? ['server.ts', 'package.json', 'tsconfig.json']
+    : ['server.py', 'requirements.txt'];
+  for (const f of required) {
+    if (!files[f]) throw new Error(`Missing ${f}`);
   }
+  return { validated: true, files: Object.keys(files) };
 }
 
 export function clearCache(): void {
