@@ -30,6 +30,12 @@ export interface ToolDefinition {
   headers: Record<string, string>;
 }
 
+export interface CuratedTool {
+  name: string;
+  selected: boolean;
+  tool: ToolDefinition;
+}
+
 export interface ParsedSpec {
   name: string;
   version: string;
